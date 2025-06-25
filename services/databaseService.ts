@@ -85,6 +85,7 @@ export interface HomePageData {
     progressPercentage: number;
     remainingToGoal: number;
   };
+  allPrograms: PatientOrder[];
 }
 
 /**
@@ -109,13 +110,15 @@ class DatabaseService {
         nextAppointment,
         recentCheckIns,
         pendingTasks,
-        recommendedResources
+        recommendedResources,
+        allPrograms
       ] = await Promise.all([
         this.getActiveOrders(profile.id),
         this.getNextAppointment(profile.id),
         this.getRecentCheckIns(profile.id, 5),
         this.getPendingTasks(profile.id),
-        this.getRecommendedResources(5)
+        this.getRecommendedResources(5),
+        this.getPatientPrograms(profile.id)
       ]);
 
       // Calculate weekly progress
@@ -128,7 +131,8 @@ class DatabaseService {
         recentCheckIns,
         pendingTasks,
         recommendedResources,
-        weeklyProgress
+        weeklyProgress,
+        allPrograms
       };
     } catch (error) {
       console.error('Error fetching homepage data:', error);
@@ -338,14 +342,75 @@ class DatabaseService {
           product_doses (*)
         )
       `)
-      .eq('patient_id', patientId)
-      .eq('status', 'active');
+      .eq('patient_id', patientId);
 
     if (error) {
       console.error('Error fetching patient programs:', error);
       return [];
     }
     return data || [];
+  }
+
+  /**
+   * Get program-specific tasks and data
+   */
+  async getProgramSpecificData(patientId: string, programCategory: string) {
+    try {
+      // Get orders for this specific program category
+      const { data: programOrders, error: ordersError } = await supabase
+        .from('patient_orders')
+        .select(`
+          *,
+          products (
+            name,
+            category,
+            product_doses (*)
+          )
+        `)
+        .eq('patient_id', patientId)
+        .eq('products.category', programCategory);
+
+      if (ordersError) {
+        console.error('Error fetching program orders:', ordersError);
+      }
+
+      // Get program-specific tasks
+      const { data: programTasks, error: tasksError } = await supabase
+        .from('pb_tasks')
+        .select('*')
+        .eq('patient_id', patientId)
+        .eq('task_type', programCategory)
+        .eq('status', 'pending');
+
+      if (tasksError) {
+        console.error('Error fetching program tasks:', tasksError);
+      }
+
+      // Get program-specific educational resources
+      const { data: programResources, error: resourcesError } = await supabase
+        .from('educational_resources')
+        .select('*')
+        .eq('category', programCategory)
+        .eq('is_featured', true)
+        .limit(3);
+
+      if (resourcesError) {
+        console.error('Error fetching program resources:', resourcesError);
+      }
+
+      return {
+        orders: programOrders || [],
+        tasks: programTasks || [],
+        resources: programResources || []
+      };
+    } catch (error) {
+      console.error('Error fetching program specific data:', error);
+      return {
+        orders: [],
+        tasks: [],
+        resources: []
+      };
+    }
   }
 }
 

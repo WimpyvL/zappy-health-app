@@ -52,12 +52,18 @@ export const useHomePageData = () => {
     return success;
   };
 
+  const getProgramData = async (programCategory: string) => {
+    if (!data?.profile.id) return { orders: [], tasks: [], resources: [] };
+    return await databaseService.getProgramSpecificData(data.profile.id, programCategory);
+  };
+
   return {
     data,
     loading,
     error,
     refreshData,
     logWeight,
-    completeTask
+    completeTask,
+    getProgramData
   };
 };
