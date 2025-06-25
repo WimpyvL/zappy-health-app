@@ -3,14 +3,14 @@ import React, { useContext } from 'react';
 import { ProgramContext } from '../../App';
 import { BellIcon } from '../../constants'; // Assuming BellIcon is in constants
 import { AuthButton } from '../auth/AuthButton';
-import { useAuth } from '../../contexts/AuthContext';
+import { useProfile } from '../../hooks/useProfile';
 
 interface HeaderProps {
   title?: string;
   subtitle?: string; // For Home page: "Good morning, Michel"
   showProfileImage?: boolean;
   showNotificationBell?: boolean;
-  userName?: string; // For Home page greeting
+  userName?: string; // For Home page greeting (fallback if profile not loaded)
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -21,25 +21,33 @@ const Header: React.FC<HeaderProps> = ({
   userName
 }) => {
   const programContext = useContext(ProgramContext);
-  const { user } = useAuth();
+  const { displayName, isProfileLoading } = useProfile();
   
   // If context is not available, or if no specific theme for header, use a default
   const headerThemeClass = programContext?.activeProgram?.themeClass || 'theme-weight';
 
-  // Use authenticated user's name if available, otherwise use prop
-  const displayName = user?.user_metadata?.full_name || userName;
+  // Use profile name, fallback to prop
+  const finalDisplayName = displayName || userName;
 
   return (
     <header className={`header-gradient pt-8 pb-5 px-6 ${headerThemeClass}`} role="banner">
       <div className="flex justify-between items-center relative z-10">
         <div>
           {title && <h1 className="text-2xl font-bold text-white leading-tight">{title}</h1>}
-          {displayName && (
+          {finalDisplayName && (
              <h1 className="text-xl font-bold text-white leading-tight">
-              Good morning, <span className="block font-light text-lg opacity-95">{displayName}</span>
+              Good morning, <span className="block font-light text-lg opacity-95">
+                {isProfileLoading ? (
+                  <span className="inline-flex items-center">
+                    <div className="animate-pulse bg-white/20 h-4 w-16 rounded"></div>
+                  </span>
+                ) : (
+                  finalDisplayName
+                )}
+              </span>
             </h1>
           )}
-          {subtitle && <p className={`text-base mt-1 ${displayName ? 'text-white/90' : 'text-white/85'}`}>{subtitle}</p>}
+          {subtitle && <p className={`text-base mt-1 ${finalDisplayName ? 'text-white/90' : 'text-white/85'}`}>{subtitle}</p>}
         </div>
         <div className="flex items-center gap-3">
           {showNotificationBell && (

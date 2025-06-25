@@ -1,60 +1,27 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { profileService } from '../../services/database'
-import type { Database } from '../../lib/supabase'
-
-type Profile = Database['public']['Tables']['profiles']['Row']
+import { useProfile } from '../../hooks/useProfile'
 
 export const UserProfile: React.FC = () => {
-  const { user, signOut } = useAuth()
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { signOut } = useAuth()
+  const { profile, isProfileLoading, updateProfile, email, memberSince } = useProfile()
   const [editing, setEditing] = useState(false)
   const [fullName, setFullName] = useState('')
 
-  useEffect(() => {
-    if (user) {
-      loadProfile()
+  React.useEffect(() => {
+    if (profile) {
+      setFullName(profile.full_name || '')
     }
-  }, [user])
-
-  const loadProfile = async () => {
-    if (!user) return
-
-    setLoading(true)
-    const profileData = await profileService.getProfile(user.id)
-    
-    if (profileData) {
-      setProfile(profileData)
-      setFullName(profileData.full_name || '')
-    } else {
-      // Create profile if it doesn't exist
-      const newProfile = {
-        id: user.id,
-        email: user.email || '',
-        full_name: user.user_metadata?.full_name || '',
-        avatar_url: null,
-      }
-      
-      const success = await profileService.createProfile(newProfile)
-      if (success) {
-        setProfile(newProfile as Profile)
-        setFullName(newProfile.full_name)
-      }
-    }
-    setLoading(false)
-  }
+  }, [profile])
 
   const handleUpdateProfile = async () => {
-    if (!user || !profile) return
+    if (!profile) return
 
-    const success = await profileService.updateProfile(user.id, {
+    const success = await updateProfile({
       full_name: fullName,
-      updated_at: new Date().toISOString()
     })
 
     if (success) {
-      setProfile({ ...profile, full_name: fullName })
       setEditing(false)
     }
   }
@@ -63,7 +30,7 @@ export const UserProfile: React.FC = () => {
     await signOut()
   }
 
-  if (loading) {
+  if (isProfileLoading) {
     return (
       <div className="flex items-center justify-center p-4">
         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
@@ -71,7 +38,7 @@ export const UserProfile: React.FC = () => {
     )
   }
 
-  if (!user || !profile) {
+  if (!profile) {
     return null
   }
 
@@ -90,7 +57,7 @@ export const UserProfile: React.FC = () => {
       <div className="space-y-3">
         <div>
           <label className="block text-sm font-medium text-gray-700">Email</label>
-          <p className="text-sm text-gray-600">{profile.email}</p>
+          <p className="text-sm text-gray-600">{email}</p>
         </div>
 
         <div>
@@ -101,6 +68,8 @@ export const UserProfile: React.FC = () => {
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
+                placeholder="Enter your full name"
+                aria-label="Full name"
                 className="flex-1 px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
               <button
@@ -135,7 +104,7 @@ export const UserProfile: React.FC = () => {
         <div>
           <label className="block text-sm font-medium text-gray-700">Member Since</label>
           <p className="text-sm text-gray-600">
-            {new Date(profile.created_at).toLocaleDateString()}
+            {memberSince ? memberSince.toLocaleDateString() : 'Unknown'}
           </p>
         </div>
       </div>
