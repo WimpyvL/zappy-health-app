@@ -1,62 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
-import { ShoppingCart as ShoppingCartIconLucide } from 'lucide-react'; 
-import ShoppingCart from '../components/cart/ShoppingCart'; 
+import React, { useState } from 'react';
+import { ShoppingCart as ShoppingCartIconLucide } from 'lucide-react';
+import ShoppingCart from '../components/cart/ShoppingCart';
 import Header from '../components/layout/Header';
-import { ProductDataForShop, ShopCategoryMainCardData, ShopPageCategorySectionData } from '../types';
+import { ProductDataForShop, ShopCategoryMainCardData, ShopPageCategorySectionData, CartItem } from '../types';
 import { SHOP_PAGE_CATEGORY_SECTIONS_DATA, ICON_MAP, FEATURED_PRODUCTS_DATA } from '../constants';
-
-// Local dummy useCart implementation (as provided in current ShopPage)
-const useCart = () => {
-  const [itemCount, setItemCount] = useState(0);
-  const [cartTotal, setCartTotal] = useState(0);
-  const [cartItemsList, setCartItemsList] = useState<ProductDataForShop[]>([]);
-
-
-  const addItemToCart = (product: ProductDataForShop) => {
-    console.log("Dummy: Add to cart", product.name, product);
-    setItemCount(prev => prev + 1);
-    setCartTotal(prev => prev + product.price);
-    // @ts-ignore
-    setCartItemsList(prev => { 
-      if (prev.find(item => item.id === product.id)) return prev;
-      return [...prev, product];
-    }); 
-  };
-  const removeItem = (doseId: string) => {
-    console.log("Dummy: Remove item", doseId);
-    // @ts-ignore
-    const itemToRemove = cartItemsList.find(item => item.doseId === doseId);
-    if (itemToRemove) {
-        // @ts-ignore
-      setCartItemsList(prev => prev.filter(item => item.doseId !== doseId));
-      setItemCount(prev => Math.max(0, prev - 1)); 
-      setCartTotal(prev => Math.max(0, prev - itemToRemove.price));
-    }
-  };
-  const updateQuantity = (doseId: string, quantity: number) => {
-    console.log("Dummy: Update quantity", doseId, quantity);
-  };
-  const clearCart = () => {
-    console.log("Dummy: Clear cart");
-    setItemCount(0);
-    setCartTotal(0);
-    setCartItemsList([]);
-  };
-  const getCartTotal = () => cartTotal;
-  const getCartItemCount = () => itemCount;
-  
-  return {
-    cartItems: cartItemsList, 
-    addItemToCart,
-    removeItem,
-    updateQuantity,
-    clearCart,
-    getCartTotal,
-    getCartItemCount,
-  };
-};
-
+import { useCart } from '../contexts/CartContext'; // Import the actual useCart hook
 
 // --- Sub-Components for ShopPage ---
 
@@ -147,7 +96,15 @@ const ShopPage: React.FC = () => {
   const currentCartItemCount = getCartItemCount();
 
   const handleProductTeaserAddToCart = (product: ProductDataForShop) => {
-    addItemToCart(product);
+    const cartItem: CartItem = {
+      doseId: product.doseId,
+      productName: product.productName,
+      price: product.price,
+      quantity: 1, // When adding from the shop page, quantity is always 1 initially
+      requiresPrescription: product.requiresPrescription,
+      imageUrl: product.imageUrl,
+    };
+    addItemToCart(cartItem);
     console.log(`${product.name} added to cart via ShopPage handler.`);
   };
 

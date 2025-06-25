@@ -13,6 +13,7 @@ import BottomNav from './components/layout/BottomNav';
 import QuickActionsMenu from './components/layout/QuickActionsMenu';
 import ToastContainer from './components/ui/ToastContainer';
 import { AuthProvider } from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext';
 import { Page, ProgramContextType, ToastContextType, ToastMessage } from './types';
 import { PROGRAMS_DATA, DEFAULT_PROGRAM_ID } from './constants';
 
@@ -83,6 +84,7 @@ const App: React.FC = () => {
 
   return (
     <AuthProvider>
+    <CartProvider>
       <ProgramContext.Provider value={programContextValue}>
         <ToastContext.Provider value={toastContextValue}>
           <div className={`w-full bg-transparent min-h-screen flex flex-col ${themeClass}`}>
@@ -112,7 +114,8 @@ const App: React.FC = () => {
           <ToastContainer toasts={toasts} removeToast={removeToast} />
         </ToastContext.Provider>
       </ProgramContext.Provider>
-    </AuthProvider>
+    </CartProvider>
+  </AuthProvider>
   );
 };
 

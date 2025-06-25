@@ -29,52 +29,6 @@ export const ProfilePage: React.FC = () => {
     setOrders(userOrders)
   }
 
-  const createSampleHealthRecord = async () => {
-    if (!user) return
-
-    const success = await healthRecordsService.createHealthRecord({
-      user_id: user.id,
-      record_type: 'blood_pressure',
-      data: {
-        systolic: 120 + Math.floor(Math.random() * 20),
-        diastolic: 80 + Math.floor(Math.random() * 10),
-        timestamp: new Date().toISOString()
-      },
-      notes: 'Sample reading created from demo'
-    })
-
-    if (success) {
-      loadUserData()
-    }
-  }
-
-  const createSampleOrder = async () => {
-    if (!user) return
-
-    const orderId = await ordersService.createOrder({
-      user_id: user.id,
-      status: 'pending',
-      total_amount: 49.99,
-      items: [
-        {
-          product_id: 'demo_product',
-          name: 'Health Supplement Demo',
-          quantity: 1,
-          price: 49.99
-        }
-      ],
-      shipping_address: {
-        street: '123 Demo Street',
-        city: 'Demo City',
-        state: 'DC',
-        zip: '12345'
-      }
-    })
-
-    if (orderId) {
-      loadUserData()
-    }
-  }
 
   if (loading) {
     return (
@@ -127,14 +81,8 @@ export const ProfilePage: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <div className="px-6 py-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">Health Records</h2>
-              <button
-                onClick={createSampleHealthRecord}
-                className="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700"
-              >
-                Add Sample
-              </button>
             </div>
             <div className="p-6">
               {healthRecords.length === 0 ? (
@@ -167,14 +115,8 @@ export const ProfilePage: React.FC = () => {
           </div>
 
           <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <div className="px-6 py-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">Orders</h2>
-              <button
-                onClick={createSampleOrder}
-                className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
-              >
-                Add Sample
-              </button>
             </div>
             <div className="p-6">
               {orders.length === 0 ? (

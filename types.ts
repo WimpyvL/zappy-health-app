@@ -118,3 +118,14 @@ export interface ShopPageHeroData {
   backgroundImageUrl: string;
   heroCards: ProductDataForShop[];
 }
+
+// Cart Item interface
+export interface CartItem {
+  doseId: string;
+  productName: string;
+  doseValue?: string;
+  price: number;
+  quantity: number;
+  requiresPrescription?: boolean;
+  imageUrl?: string;
+}

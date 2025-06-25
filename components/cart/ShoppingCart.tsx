@@ -1,66 +1,32 @@
 
 import React, { useRef, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import { redirectToPaymentCheckout } from '../../utils/stripeCheckout'; // Definition not provided
 import { X, Trash2, Plus, Minus, ShoppingCart as CartIconLucide } from 'lucide-react';
-// import { message } from 'antd'; // Removed antd dependency
-import { ToastContext } from '../../App'; // Import ToastContext
-import { ToastContextType } from '../../types'; // Assuming ToastContextType is in types
+import { ToastContext } from '../../App';
+import { ToastContextType, CartItem } from '../../types';
+import { useCart } from '../../contexts/CartContext'; // Import the actual useCart hook
 
 interface ShoppingCartProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-// Define a richer CartItem type based on usage in this component
-interface CartItem {
-  doseId: string;
-  productName: string;
-  doseValue?: string;
-  price: number;
-  quantity: number;
-  requiresPrescription?: boolean;
-  imageUrl?: string;
-}
-
-// Local dummy useCart implementation
-const useCart = () => {
-  return {
-    cartItems: [] as CartItem[], // Use the defined CartItem type
-    addItemToCart: (item: CartItem) => { 
-      console.log("Dummy: Add to cart", item.productName);
-    },
-    removeItem: (doseId: string) => {
-      console.log("Dummy: Remove item", doseId);
-    },
-    updateQuantity: (doseId: string, quantity: number) => {
-      console.log("Dummy: Update quantity", doseId, quantity);
-    },
-    clearCart: () => {
-      console.log("Dummy: Clear cart");
-    },
-    getCartTotal: () => 0,
-    getCartItemCount: () => 0,
-  };
-};
-
 // Dummy redirectToPaymentCheckout as it's not provided
 const redirectToPaymentCheckout = async (items: CartItem[], toastAdder?: (message: string, type?: 'info' | 'success' | 'error' | 'warning') => void) => {
   console.log("Dummy: Redirecting to payment checkout for items:", items);
   toastAdder?.("Checkout process is not implemented in this version.", 'info');
   // In a real scenario, this would interact with a payment provider
-  return Promise.resolve(); 
+  return Promise.resolve();
 };
-
 
 const ShoppingCart: React.FC<ShoppingCartProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const toastContext = useContext<ToastContextType | undefined>(ToastContext);
-  
+
   const {
     cartItems,
-    removeItem,
-    updateQuantity,
+    removeItemFromCart, // Renamed from removeItem
+    updateItemQuantity, // Renamed from updateQuantity
     clearCart,
     getCartTotal,
     getCartItemCount,
@@ -99,12 +65,10 @@ const ShoppingCart: React.FC<ShoppingCartProps> = ({ isOpen, onClose }) => {
     const item = cartItems.find((i) => i.doseId === doseId);
     if (item) {
       const newQuantity = item.quantity + change;
-      if (newQuantity >= 1) { 
-        updateQuantity(doseId, newQuantity);
-        // toastContext?.addToast(`Updated quantity of ${item.productName}`, 'success'); // Message comes from dummy hook now
+      if (newQuantity >= 1) {
+        updateItemQuantity(doseId, newQuantity);
       } else if (newQuantity === 0) {
-        removeItem(doseId); 
-        // toastContext?.addToast(`${item.productName} removed from cart.`, 'info'); // Message comes from dummy hook now
+        removeItemFromCart(doseId);
       }
     }
   };
@@ -195,8 +159,7 @@ const ShoppingCart: React.FC<ShoppingCartProps> = ({ isOpen, onClose }) => {
                 </div>
                 <button
                   onClick={() => {
-                    removeItem(item.doseId);
-                    // toastContext?.addToast(`${item.productName} removed from cart.`, 'info'); // Message from dummy hook
+                    removeItemFromCart(item.doseId);
                   }}
                   className="text-gray-400 hover:text-red-500 dark:hover:text-red-400"
                   aria-label="Remove item"
