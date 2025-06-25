@@ -412,6 +412,95 @@ class DatabaseService {
       };
     }
   }
+
+  /**
+   * Create a new patient record
+   */
+  async createPatient(userData: {
+    user_id: string;
+    first_name: string;
+    last_name?: string;
+    email: string;
+    date_of_birth?: string;
+    weight?: number;
+    height?: number;
+  }): Promise<PatientProfile | null> {
+    try {
+      const { data, error } = await supabase
+        .from('patients')
+        .insert({
+          user_id: userData.user_id,
+          first_name: userData.first_name,
+          last_name: userData.last_name || '',
+          email: userData.email,
+          date_of_birth: userData.date_of_birth || null,
+          weight: userData.weight || null,
+          height: userData.height || null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating patient:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating patient:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get patient by user_id
+   */
+  async getPatientByUserId(userId: string): Promise<PatientProfile | null> {
+    try {
+      const { data, error } = await supabase
+        .from('patients')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching patient:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching patient:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Update patient profile
+   */
+  async updatePatient(userId: string, updates: Partial<PatientProfile>): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('patients')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId);
+
+      if (error) {
+        console.error('Error updating patient:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error updating patient:', error);
+      return false;
+    }
+  }
 }
 
 // Export a single instance

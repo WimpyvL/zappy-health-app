@@ -6,6 +6,45 @@ type Profile = Tables['profiles']['Row']
 type HealthRecord = Tables['health_records']['Row']
 type Order = Tables['orders']['Row']
 
+// Patient interface (until it's added to the database types)
+interface PatientRow {
+  id: string
+  user_id: string
+  first_name: string
+  last_name: string | null
+  email: string
+  date_of_birth: string | null
+  weight: number | null
+  height: number | null
+  target_weight: number | null
+  created_at: string
+  updated_at: string
+}
+
+interface PatientInsert {
+  user_id: string
+  first_name: string
+  last_name?: string | null
+  email: string
+  date_of_birth?: string | null
+  weight?: number | null
+  height?: number | null
+  target_weight?: number | null
+  created_at?: string
+  updated_at?: string
+}
+
+interface PatientUpdate {
+  first_name?: string
+  last_name?: string | null
+  email?: string
+  date_of_birth?: string | null
+  weight?: number | null
+  height?: number | null
+  target_weight?: number | null
+  updated_at?: string
+}
+
 // Profile Services
 export const profileService = {
   async getProfile(userId: string): Promise<Profile | null> {
@@ -169,6 +208,51 @@ export const ordersService = {
     }
 
     return data
+  }
+}
+
+// Patient Services
+export const patientService = {
+  async getPatient(userId: string): Promise<PatientRow | null> {
+    const { data, error } = await supabase
+      .from('patients')
+      .select('*')
+      .eq('user_id', userId)
+      .single()
+
+    if (error) {
+      console.error('Error fetching patient:', error)
+      return null
+    }
+
+    return data
+  },
+
+  async createPatient(patient: PatientInsert): Promise<boolean> {
+    const { error } = await supabase
+      .from('patients')
+      .insert(patient)
+
+    if (error) {
+      console.error('Error creating patient:', error)
+      return false
+    }
+
+    return true
+  },
+
+  async updatePatient(userId: string, updates: PatientUpdate): Promise<boolean> {
+    const { error } = await supabase
+      .from('patients')
+      .update(updates)
+      .eq('user_id', userId)
+
+    if (error) {
+      console.error('Error updating patient:', error)
+      return false
+    }
+
+    return true
   }
 }
 
