@@ -5,11 +5,15 @@ import HomePage from './pages/HomePage';
 import HealthPage from './pages/HealthPage';
 import LearnPage from './pages/LearnPage';
 import ShopPage from './pages/ShopPage';
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
+import AuthCallbackPage from './pages/AuthCallbackPage';
+import { ProfilePage } from './pages/ProfilePage';
 import BottomNav from './components/layout/BottomNav';
 import QuickActionsMenu from './components/layout/QuickActionsMenu';
 import ToastContainer from './components/ui/ToastContainer';
 import { AuthProvider } from './contexts/AuthContext';
-import { Page, Program, ProgramContextType, ToastContextType, ToastMessage } from './types';
+import { Page, ProgramContextType, ToastContextType, ToastMessage } from './types';
 import { PROGRAMS_DATA, DEFAULT_PROGRAM_ID } from './constants';
 
 export const ProgramContext = createContext<ProgramContextType | undefined>(undefined);
@@ -47,6 +51,8 @@ const App: React.FC = () => {
 
   // Determine current page for BottomNav active state
   let currentPage: Page;
+  let showBottomNav = true; // Controls whether to show bottom navigation
+  
   switch (location.pathname) {
     case '/health':
       currentPage = Page.Health;
@@ -56,6 +62,13 @@ const App: React.FC = () => {
       break;
     case '/shop':
       currentPage = Page.Shop;
+      break;
+    case '/login':
+    case '/signup':
+    case '/profile':
+    case '/auth/callback':
+      currentPage = Page.Home; // Default for auth pages
+      showBottomNav = false; // Hide bottom nav on auth pages
       break;
     case '/':
     default:
@@ -78,17 +91,23 @@ const App: React.FC = () => {
               <Route path="/health" element={<HealthPage />} />
               <Route path="/learn" element={<LearnPage />} />
               <Route path="/shop" element={<ShopPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/auth/callback" element={<AuthCallbackPage />} />
             </Routes>
             
             <QuickActionsMenu
               isOpen={isQuickActionsOpen}
               onClose={() => setIsQuickActionsOpen(false)}
             />
-            <BottomNav
-              activePage={currentPage}
-              isFabActive={isQuickActionsOpen}
-              onFabClick={() => setIsQuickActionsOpen(prev => !prev)}
-            />
+            {showBottomNav && (
+              <BottomNav
+                activePage={currentPage}
+                isFabActive={isQuickActionsOpen}
+                onFabClick={() => setIsQuickActionsOpen(prev => !prev)}
+              />
+            )}
           </div>
           <ToastContainer toasts={toasts} removeToast={removeToast} />
         </ToastContext.Provider>

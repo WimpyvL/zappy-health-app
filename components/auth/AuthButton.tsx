@@ -1,14 +1,47 @@
-import React, { useState } from 'react'
-import { User } from 'lucide-react'
+import React, { useState, useRef, useEffect } from 'react'
+import { User, LogOut, UserCircle } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import { AuthForm } from './AuthForm'
-import { UserProfile } from './UserProfile'
 
 export const AuthButton: React.FC = () => {
-  const { user, loading } = useAuth()
-  const [showAuthForm, setShowAuthForm] = useState(false)
-  const [showProfile, setShowProfile] = useState(false)
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login')
+  const { user, loading, signOut } = useAuth()
+  const [showUserMenu, setShowUserMenu] = useState(false)
+  const navigate = useNavigate()
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        menuRef.current && 
+        !menuRef.current.contains(event.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
+        setShowUserMenu(false)
+      }
+    }
+
+    if (showUserMenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showUserMenu])
+
+  const handleSignOut = async () => {
+    await signOut()
+    setShowUserMenu(false)
+  }
+
+  const handleSignInClick = () => {
+    navigate('/login')
+  }
+
+  const handleProfileClick = () => {
+    navigate('/profile')
+    setShowUserMenu(false)
+  }
 
   if (loading) {
     return (
@@ -16,55 +49,70 @@ export const AuthButton: React.FC = () => {
     )
   }
 
-  return (
-    <>
+  if (!user) {
+    return (
       <button
-        onClick={() => {
-          if (user) {
-            setShowProfile(true)
-          } else {
-            setShowAuthForm(true)
-          }
-        }}
-        className="flex items-center gap-2 px-3 py-2 rounded-full bg-blue-50 hover:bg-blue-100 transition-colors"
-        aria-label={user ? "View profile" : "Sign in"}
+        onClick={handleSignInClick}
+        className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        aria-label="Sign in to your account"
+      >
+        <User className="w-4 h-4" />
+        Sign In
+      </button>
+    )
+  }
+
+  return (
+    <div className="relative">
+      <button
+        ref={buttonRef}
+        onClick={() => setShowUserMenu(!showUserMenu)}
+        className="flex items-center gap-2 px-3 py-2 rounded-full bg-blue-50 hover:bg-blue-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        {...(showUserMenu && { 'aria-expanded': true })}
+        {...(!showUserMenu && { 'aria-expanded': false })}
+        aria-label="Open user menu"
+        aria-haspopup="menu"
       >
         <User className="w-4 h-4 text-blue-600" />
-        {user ? (
-          <span className="text-sm font-medium text-blue-700">
-            {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
-          </span>
-        ) : (
-          <span className="text-sm font-medium text-blue-700">Sign In</span>
-        )}
+        <span className="text-sm font-medium text-blue-700">
+          {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
+        </span>
+        <svg
+          className={`ml-1 h-4 w-4 transition-transform duration-200 ${showUserMenu ? 'rotate-180' : 'rotate-0'}`}
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+        </svg>
       </button>
 
-      {showAuthForm && (
-        <AuthForm
-          mode={authMode}
-          onToggleMode={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
-          onClose={() => setShowAuthForm(false)}
-        />
-      )}
-
-      {showProfile && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg w-full max-w-md mx-4">
-            <div className="flex justify-between items-center p-4 border-b">
-              <h2 className="text-lg font-semibold">Your Profile</h2>
-              <button
-                onClick={() => setShowProfile(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="p-4">
-              <UserProfile />
-            </div>
+      {showUserMenu && (
+        <div 
+          ref={menuRef}
+          className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
+        >
+          <div className="py-1" role="menu">
+            <button
+              onClick={handleProfileClick}
+              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              role="menuitem"
+            >
+              <UserCircle className="w-4 h-4 mr-3" />
+              View Profile
+            </button>
+            <button
+              onClick={handleSignOut}
+              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              role="menuitem"
+            >
+              <LogOut className="w-4 h-4 mr-3" />
+              Sign Out
+            </button>
           </div>
         </div>
       )}
-    </>
+    </div>
   )
 }
