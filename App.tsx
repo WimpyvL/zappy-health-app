@@ -8,6 +8,7 @@ import ShopPage from './pages/ShopPage';
 import BottomNav from './components/layout/BottomNav';
 import QuickActionsMenu from './components/layout/QuickActionsMenu';
 import ToastContainer from './components/ui/ToastContainer';
+import { AuthProvider } from './contexts/AuthContext';
 import { Page, Program, ProgramContextType, ToastContextType, ToastMessage } from './types';
 import { PROGRAMS_DATA, DEFAULT_PROGRAM_ID } from './constants';
 
@@ -68,29 +69,31 @@ const App: React.FC = () => {
 
 
   return (
-    <ProgramContext.Provider value={programContextValue}>
-      <ToastContext.Provider value={toastContextValue}>
-        <div className={`w-full bg-transparent min-h-screen flex flex-col ${themeClass}`}>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/health" element={<HealthPage />} />
-            <Route path="/learn" element={<LearnPage />} />
-            <Route path="/shop" element={<ShopPage />} />
-          </Routes>
-          
-          <QuickActionsMenu 
-            isOpen={isQuickActionsOpen} 
-            onClose={() => setIsQuickActionsOpen(false)}
-          />
-          <BottomNav 
-            activePage={currentPage}
-            isFabActive={isQuickActionsOpen}
-            onFabClick={() => setIsQuickActionsOpen(prev => !prev)}
-          />
-        </div>
-        <ToastContainer toasts={toasts} removeToast={removeToast} />
-      </ToastContext.Provider>
-    </ProgramContext.Provider>
+    <AuthProvider>
+      <ProgramContext.Provider value={programContextValue}>
+        <ToastContext.Provider value={toastContextValue}>
+          <div className={`w-full bg-transparent min-h-screen flex flex-col ${themeClass}`}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/health" element={<HealthPage />} />
+              <Route path="/learn" element={<LearnPage />} />
+              <Route path="/shop" element={<ShopPage />} />
+            </Routes>
+            
+            <QuickActionsMenu
+              isOpen={isQuickActionsOpen}
+              onClose={() => setIsQuickActionsOpen(false)}
+            />
+            <BottomNav
+              activePage={currentPage}
+              isFabActive={isQuickActionsOpen}
+              onFabClick={() => setIsQuickActionsOpen(prev => !prev)}
+            />
+          </div>
+          <ToastContainer toasts={toasts} removeToast={removeToast} />
+        </ToastContext.Provider>
+      </ProgramContext.Provider>
+    </AuthProvider>
   );
 };
 
