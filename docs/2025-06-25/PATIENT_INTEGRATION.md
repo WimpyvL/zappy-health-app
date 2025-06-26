@@ -75,3 +75,31 @@ Added console logging to track:
 - Existing user patient record creation
 
 This ensures transparency in the registration process and aids in troubleshooting any issues.
+- **Automatic Migration**: Existing users get patient records without manual intervention
+
+## Database Schema Requirements
+The implementation assumes a `patients` table with the following structure:
+```sql
+CREATE TABLE patients (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) UNIQUE,
+  first_name TEXT NOT NULL,
+  last_name TEXT,
+  email TEXT NOT NULL,
+  date_of_birth DATE,
+  weight DECIMAL,
+  height DECIMAL,
+  target_weight DECIMAL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+## Logging & Debugging
+Added console logging to track:
+- New user registration events
+- Profile creation success/failure
+- Patient record creation success/failure
+- Existing user patient record creation
+
+This ensures transparency in the registration process and aids in troubleshooting any issues.

@@ -1,150 +1,84 @@
-# Documentation Guidelines for AI Builders
+# Zappy Health App Documentation
+
+## 📚 Quick Navigation
+
+- **[Complete Documentation Index](DOCUMENTATION_INDEX.md)** - Comprehensive list of all documentation files
+- **[AI Builder Instructions](AI_BUILDER_INSTRUCTIONS.md)** - Guidelines for AI assistants
+- **Setup & Configuration** - See `2025-06-25/` directory for setup guides
+- **Implementation Guides** - See `2025-06-26/` directory for feature implementations
 
 ## 📁 Directory Structure
 
-All documentation should be organized in the `docs/` directory with date-based subdirectories:
+Documentation is organized in date-based subdirectories for better version control and historical tracking:
 
 ```
 docs/
-├── 2025-06-25/           # Documents created on June 25, 2025
+├── 2025-06-25/           # Initial setup and configuration docs
 │   ├── GOOGLE_OAUTH_SETUP.md
 │   ├── SUPABASE_SETUP.md
-│   └── PATIENT_INTEGRATION.md
-├── 2025-06-26/           # Documents created on June 26, 2025 (example)
-│   ├── NEW_FEATURE_DOCS.md
-│   └── API_CHANGES.md
+│   ├── PATIENT_INTEGRATION.md
+│   ├── OAUTH_REDIRECT_CONFIG.md
+│   ├── DATA_MODELS_REFERENCE.md
+│   └── DOCUMENTATION_ORGANIZATION.md
+├── 2025-06-26/           # Feature implementation and best practices
+│   ├── PATIENT_APP_DATA_ACQUISITION_BEST_PRACTICES.md
+│   ├── TREATMENT_COMPONENTS_IMPLEMENTATION.md
+│   ├── ENHANCED_TREATMENT_CARDS.md
+│   ├── messaging-system-final-summary.md
+│   ├── enhanced-profile-system.md
+│   ├── profile-implementation-complete.md
+│   └── implementation-status.md
+├── AI_BUILDER_INSTRUCTIONS.md
+├── DOCUMENTATION_INDEX.md
 └── README.md             # This file
 ```
 
-## 🤖 AI Builder Instructions
+## 🏗️ Documentation Organization
 
-When creating documentation as an AI assistant, follow these rules:
+### By Category
 
-### 1. **Date-Based Organization**
-- **Always** check the current date before creating documentation
-- Create documents in a directory named `YYYY-MM-DD` format (e.g., `2025-06-25`)
-- If the directory for today's date doesn't exist, create it first
-- If working on a different day, create a new directory for that date
+**Setup & Configuration (2025-06-25/)**
+- `GOOGLE_OAUTH_SETUP.md` - Google OAuth implementation guide
+- `SUPABASE_SETUP.md` - Supabase database configuration
+- `PATIENT_INTEGRATION.md` - Patient data integration setup
+- `OAUTH_REDIRECT_CONFIG.md` - OAuth redirect configuration
+- `DATA_MODELS_REFERENCE.md` - Database schema and models reference
 
-### 2. **Directory Creation Process**
-```bash
-# Check if today's directory exists
-# If current date is 2025-06-25, create:
-docs/2025-06-25/
+**Implementation & Features (2025-06-26/)**
+- `PATIENT_APP_DATA_ACQUISITION_BEST_PRACTICES.md` - Data acquisition best practices
+- `TREATMENT_COMPONENTS_IMPLEMENTATION.md` - Treatment component development
+- `ENHANCED_TREATMENT_CARDS.md` - Enhanced treatment card features
+- `messaging-system-final-summary.md` - Messaging system implementation
+- `enhanced-profile-system.md` - Profile system enhancements
+- `profile-implementation-complete.md` - Complete profile implementation guide
 
-# If current date is 2025-06-26, create:
-docs/2025-06-26/
-```
+**General Guidelines**
+- `AI_BUILDER_INSTRUCTIONS.md` - Guidelines for AI assistants working on this project
+- `DOCUMENTATION_INDEX.md` - Comprehensive index of all documentation
 
-### 3. **Document Naming Conventions**
-- Use UPPERCASE for important setup/configuration files: `SETUP_GUIDE.md`
-- Use descriptive names: `PATIENT_INTEGRATION.md` not `integration.md`
-- Use underscores for multi-word names: `API_DOCUMENTATION.md`
-- Include version numbers when applicable: `DATABASE_MIGRATION_V2.md`
+## 🚀 Getting Started
 
-### 4. **Content Requirements**
-Every documentation file should include:
-- **Clear title** and purpose
-- **Date created** (in frontmatter or at top)
-- **Overview/Summary** section
-- **Step-by-step instructions** when applicable
-- **Code examples** with proper syntax highlighting
-- **Troubleshooting** section when relevant
-- **Dependencies** or prerequisites
+1. **New to the project?** Start with the setup guides in `2025-06-25/`
+2. **Looking for specific features?** Check the implementation guides in `2025-06-26/`
+3. **Need complete overview?** Review the [Documentation Index](DOCUMENTATION_INDEX.md)
+4. **AI Assistant?** Follow the [AI Builder Instructions](AI_BUILDER_INSTRUCTIONS.md)
 
-### 5. **Cross-Referencing**
-- Always update the main project README when adding significant documentation
-- Reference related documents using relative paths from project root
-- Example: `See [Patient Integration](docs/2025-06-25/PATIENT_INTEGRATION.md) for details`
+## 📋 Documentation Standards
 
-## 📋 Document Types & Templates
+- **Date-based organization**: All new documentation goes in `YYYY-MM-DD/` directories
+- **Descriptive naming**: Use clear, descriptive filenames with underscores
+- **Comprehensive content**: Include purpose, overview, and step-by-step instructions
+- **Cross-references**: Link related documents and update indexes when adding new files
 
-### Setup/Configuration Documents
-```markdown
-# [Feature] Setup Guide
+For detailed guidelines on creating documentation, see [AI Builder Instructions](AI_BUILDER_INSTRUCTIONS.md).
 
-## Overview
-Brief description of what this sets up.
+## � Quick Links
 
-## Prerequisites
-- Requirement 1
-- Requirement 2
-
-## Step-by-Step Instructions
-1. First step
-2. Second step
-
-## Environment Variables
-```env
-VARIABLE_NAME=value
-```
-
-## Testing
-How to verify the setup works.
-
-## Troubleshooting
-Common issues and solutions.
-```
-
-### Feature Implementation Documents
-```markdown
-# [Feature] Implementation
-
-## Overview
-What was implemented and why.
-
-## Changes Made
-### Files Modified
-- `file1.ts` - Description of changes
-- `file2.tsx` - Description of changes
-
-### New Files Created
-- `newfile.ts` - Purpose and functionality
-
-## Technical Details
-Implementation specifics.
-
-## Usage Examples
-How to use the new feature.
-
-## Impact & Benefits
-What this change enables.
-```
-
-## 🔄 Maintenance Guidelines
-
-### For AI Builders:
-1. **Before creating any documentation**, run:
-   ```javascript
-   const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-   ```
-2. **Check if directory exists**: `docs/${today}/`
-3. **Create directory if needed**: `mkdir docs/${today}`
-4. **Place all documents** in the date-appropriate directory
-5. **Update this README** if adding new document types or conventions
-
-### For Human Developers:
-- Review documentation organization monthly
-- Archive old directories if they become irrelevant
-- Ensure all setup documents are current and working
-- Update cross-references when files are moved
-
-## 📈 Benefits of This System
-
-1. **Chronological Organization**: Easy to see when features were added
-2. **Historical Context**: Understand development timeline
-3. **Easier Maintenance**: Know which docs might be outdated
-4. **Clear Responsibility**: Each AI session's work is clearly grouped
-5. **Better Collaboration**: Humans can track AI contributions over time
-
-## 🚨 Important Notes
-
-- **Never mix documents from different dates** in the same directory
-- **Always check the current date** before creating documents
-- **Create the directory structure first**, then add documents
-- **Use consistent naming** across all documentation
-- **Reference the date directory** in any cross-links from project root
+- **Project Root**: [Main README](../README.md)
+- **Setup Guide**: [Supabase Setup](2025-06-25/SUPABASE_SETUP.md)
+- **OAuth Setup**: [Google OAuth](2025-06-25/GOOGLE_OAUTH_SETUP.md)
+- **Patient Integration**: [Patient Setup](2025-06-25/PATIENT_INTEGRATION.md)
 
 ---
 
-*This guideline was created on 2025-06-25. Update as needed for future documentation standards.*
+*Documentation organized and updated on 2025-06-26. See [Documentation Index](DOCUMENTATION_INDEX.md) for complete file listing.*

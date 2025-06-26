@@ -1,4 +1,3 @@
-
 export enum Page {
   Home = 'Home',
   Health = 'Health',
@@ -173,4 +172,61 @@ export interface CartItem {
   quantity: number;
   requiresPrescription?: boolean;
   imageUrl?: string;
+}
+
+// Enhanced Profile Types
+export interface UserProfile {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  email: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  phone_number: string | null;
+  date_of_birth: string | null;
+  gender: 'male' | 'female' | 'other' | 'prefer_not_to_say' | null;
+  address: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zip_code?: string;
+    country?: string;
+  } | null;
+  emergency_contact: {
+    name?: string;
+    phone?: string;
+    relationship?: string;
+  } | null;
+  medical_info: {
+    allergies?: string[];
+    medications?: string[];
+    conditions?: string[];
+    height?: number; // in cm
+    weight?: number; // in kg
+    blood_type?: string;
+  } | null;
+  preferences: {
+    notifications: {
+      email: boolean;
+      sms: boolean;
+      push: boolean;
+      marketing: boolean;
+    };
+    privacy: {
+      share_data_for_research: boolean;
+      share_progress_with_providers: boolean;
+    };
+    communication: {
+      preferred_contact_method: 'email' | 'sms' | 'phone' | 'app';
+      timezone: string;
+    };
+  } | null;
+  subscription_status: 'free' | 'premium' | 'enterprise' | null;
+  subscription_expires_at: string | null;
+}
+
+export interface ProfileSettings {
+  section: 'personal' | 'medical' | 'emergency' | 'preferences' | 'subscription';
+  title: string;
+  icon: (props: { className?: string }) => React.ReactNode;
 }
