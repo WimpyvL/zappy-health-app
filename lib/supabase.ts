@@ -39,6 +39,140 @@ export interface Database {
           avatar_url?: string | null
         }
       }
+      conversations: {
+        Row: {
+          id: string
+          created_at: string
+          updated_at: string
+          patient_id: string
+          doctor_id: string
+          subject: string | null
+          status: string
+          last_message_at: string
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          updated_at?: string
+          patient_id: string
+          doctor_id: string
+          subject?: string | null
+          status?: string
+          last_message_at?: string
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          updated_at?: string
+          patient_id?: string
+          doctor_id?: string
+          subject?: string | null
+          status?: string
+          last_message_at?: string
+        }
+      }
+      messages: {
+        Row: {
+          id: string
+          conversation_id: string
+          sender_id: string
+          content: string
+          message_type: string
+          metadata: any
+          created_at: string
+          updated_at: string
+          read_at: string | null
+          is_edited: boolean
+          edited_at: string | null
+        }
+        Insert: {
+          id?: string
+          conversation_id: string
+          sender_id: string
+          content: string
+          message_type?: string
+          metadata?: any
+          created_at?: string
+          updated_at?: string
+          read_at?: string | null
+          is_edited?: boolean
+          edited_at?: string | null
+        }
+        Update: {
+          id?: string
+          conversation_id?: string
+          sender_id?: string
+          content?: string
+          message_type?: string
+          metadata?: any
+          created_at?: string
+          updated_at?: string
+          read_at?: string | null
+          is_edited?: boolean
+          edited_at?: string | null
+        }
+      }
+      doctors: {
+        Row: {
+          id: string
+          user_id: string
+          created_at: string
+          updated_at: string
+          full_name: string
+          specialty: string
+          license_number: string | null
+          avatar_url: string | null
+          bio: string | null
+          is_active: boolean
+          theme_color: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          created_at?: string
+          updated_at?: string
+          full_name: string
+          specialty: string
+          license_number?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          is_active?: boolean
+          theme_color?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          created_at?: string
+          updated_at?: string
+          full_name?: string
+          specialty?: string
+          license_number?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          is_active?: boolean
+          theme_color?: string
+        }
+      }
+      message_read_status: {
+        Row: {
+          id: string
+          message_id: string
+          user_id: string
+          read_at: string
+        }
+        Insert: {
+          id?: string
+          message_id: string
+          user_id: string
+          read_at?: string
+        }
+        Update: {
+          id?: string
+          message_id?: string
+          user_id?: string
+          read_at?: string
+        }
+      }
       health_records: {
         Row: {
           id: string

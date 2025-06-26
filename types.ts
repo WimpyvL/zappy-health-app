@@ -66,6 +66,46 @@ export interface Message {
   avatarIcon: (props: { className?: string }) => React.ReactNode;
 }
 
+// Real-time messaging types
+export interface DatabaseMessage {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  content: string;
+  message_type: string;
+  metadata: any;
+  created_at: string;
+  updated_at: string;
+  read_at: string | null;
+  is_edited: boolean;
+  edited_at: string | null;
+}
+
+export interface DatabaseConversation {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  patient_id: string;
+  doctor_id: string;
+  subject: string | null;
+  status: string;
+  last_message_at: string;
+}
+
+export interface DatabaseDoctor {
+  id: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+  full_name: string;
+  specialty: string;
+  license_number: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  is_active: boolean;
+  theme_color: string;
+}
+
 export interface TreatmentCategory {
   id: string;
   title: string;
@@ -81,6 +121,11 @@ export interface Treatment {
   themeClass: string; // e.g. program-weight
   icon: (props: { className?: string }) => React.ReactNode;
   tag?: 'New' | 'Popular';
+}
+
+export interface TreatmentWithCategory extends Treatment {
+  category: string;
+  categoryColor: string;
 }
 
 // Shop Page Specific Types

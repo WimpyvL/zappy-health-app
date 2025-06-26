@@ -1,4 +1,3 @@
-
 import React, { useState, createContext, useCallback, useMemo } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import HomePage from './pages/HomePage';
@@ -9,6 +8,8 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import { ProfilePage } from './pages/ProfilePage';
+import TreatmentsPage from './pages/TreatmentsPage';
+import MessagesPage from './pages/MessagesPage';
 import BottomNav from './components/layout/BottomNav';
 import QuickActionsMenu from './components/layout/QuickActionsMenu';
 import ToastContainer from './components/ui/ToastContainer';
@@ -16,6 +17,8 @@ import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import { Page, ProgramContextType, ToastContextType, ToastMessage } from './types';
 import { PROGRAMS_DATA, DEFAULT_PROGRAM_ID } from './constants';
+// Development tools - only import in dev mode
+import MessagingTestUtils from './components/dev/MessagingTestUtils';
 
 export const ProgramContext = createContext<ProgramContextType | undefined>(undefined);
 export const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -64,6 +67,12 @@ const App: React.FC = () => {
     case '/shop':
       currentPage = Page.Shop;
       break;
+    case '/treatments':
+      currentPage = Page.Health; // Treat treatments as part of health
+      break;
+    case '/messages':
+      currentPage = Page.Health; // Treat messages as part of health
+      break;
     case '/login':
     case '/signup':
     case '/profile':
@@ -91,6 +100,8 @@ const App: React.FC = () => {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/health" element={<HealthPage />} />
+              <Route path="/treatments" element={<TreatmentsPage />} />
+              <Route path="/messages" element={<MessagesPage />} />
               <Route path="/learn" element={<LearnPage />} />
               <Route path="/shop" element={<ShopPage />} />
               <Route path="/login" element={<LoginPage />} />
@@ -112,6 +123,8 @@ const App: React.FC = () => {
             )}
           </div>
           <ToastContainer toasts={toasts} removeToast={removeToast} />
+          {/* Development tools - only show in development mode */}
+          {import.meta.env.DEV && <MessagingTestUtils />}
         </ToastContext.Provider>
       </ProgramContext.Provider>
     </CartProvider>
