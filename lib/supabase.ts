@@ -357,6 +357,47 @@ export interface Database {
           shipping_address?: any | null
         }
       }
+      patients: {
+        Row: {
+          id: string
+          user_id: string
+          first_name: string
+          last_name: string | null
+          email: string
+          date_of_birth: string | null
+          weight: number | null
+          height: number | null
+          target_weight: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          first_name: string
+          last_name?: string | null
+          email: string
+          date_of_birth?: string | null
+          weight?: number | null
+          height?: number | null
+          target_weight?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          first_name?: string
+          last_name?: string | null
+          email?: string
+          date_of_birth?: string | null
+          weight?: number | null
+          height?: number | null
+          target_weight?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never

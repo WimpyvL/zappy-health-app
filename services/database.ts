@@ -5,45 +5,9 @@ type Tables = Database['public']['Tables']
 type Profile = Tables['profiles']['Row']
 type HealthRecord = Tables['health_records']['Row']
 type Order = Tables['orders']['Row']
-
-// Patient interface (until it's added to the database types)
-interface PatientRow {
-  id: string
-  user_id: string
-  first_name: string
-  last_name: string | null
-  email: string
-  date_of_birth: string | null
-  weight: number | null
-  height: number | null
-  target_weight: number | null
-  created_at: string
-  updated_at: string
-}
-
-interface PatientInsert {
-  user_id: string
-  first_name: string
-  last_name?: string | null
-  email: string
-  date_of_birth?: string | null
-  weight?: number | null
-  height?: number | null
-  target_weight?: number | null
-  created_at?: string
-  updated_at?: string
-}
-
-interface PatientUpdate {
-  first_name?: string
-  last_name?: string | null
-  email?: string
-  date_of_birth?: string | null
-  weight?: number | null
-  height?: number | null
-  target_weight?: number | null
-  updated_at?: string
-}
+type Patient = Tables['patients']['Row']
+type PatientInsert = Tables['patients']['Insert']
+type PatientUpdate = Tables['patients']['Update']
 
 // Profile Services
 export const profileService = {
@@ -213,7 +177,7 @@ export const ordersService = {
 
 // Patient Services
 export const patientService = {
-  async getPatient(userId: string): Promise<PatientRow | null> {
+  async getPatient(userId: string): Promise<Patient | null> {
     const { data, error } = await supabase
       .from('patients')
       .select('*')

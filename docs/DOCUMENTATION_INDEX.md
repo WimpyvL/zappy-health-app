@@ -39,9 +39,10 @@ This index provides quick access to all documentation in the Zappy Health App pr
 
 ### **Core Features**
 1. **Patient System**: [`PATIENT_INTEGRATION.md`](2025-06-25/PATIENT_INTEGRATION.md) - User registration & patient records
-2. **Messaging**: [`messaging-system-final-summary.md`](2025-06-26/messaging-system-final-summary.md) - Real-time communication
-3. **Profiles**: [`enhanced-profile-system.md`](2025-06-26/enhanced-profile-system.md) - User profile management
-4. **Treatments**: [`TREATMENT_COMPONENTS_IMPLEMENTATION.md`](2025-06-26/TREATMENT_COMPONENTS_IMPLEMENTATION.md) - Treatment browsing
+2. **🚨 PATIENT FIX**: [`PATIENT_REGISTRATION_FIX.md`](2025-06-26/PATIENT_REGISTRATION_FIX.md) - **CRITICAL** Patient registration database fix
+3. **Messaging**: [`messaging-system-final-summary.md`](2025-06-26/messaging-system-final-summary.md) - Real-time communication
+4. **Profiles**: [`enhanced-profile-system.md`](2025-06-26/enhanced-profile-system.md) - User profile management
+5. **Treatments**: [`TREATMENT_COMPONENTS_IMPLEMENTATION.md`](2025-06-26/TREATMENT_COMPONENTS_IMPLEMENTATION.md) - Treatment browsing
 
 ### **Development Guides**
 1. **AI Builders**: [`AI_BUILDER_INSTRUCTIONS.md`](AI_BUILDER_INSTRUCTIONS.md) - Quick reference
