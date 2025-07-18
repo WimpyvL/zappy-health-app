@@ -4,6 +4,7 @@ import Header from '../components/layout/Header';
 import ProgramTabs from '../components/ui/ProgramTabs';
 import NotificationBanner from '../components/ui/NotificationBanner';
 import { ProgramContext, ToastContext } from '../App';
+import ReferralBlock from '../components/ui/ReferralBlock';
 import { PROGRAMS_DATA, PackageIcon, CheckCircleIcon, ArrowTrendingDownIcon, CalendarIcon, RefillIcon, InformationCircleIcon, CheckIcon, FireIcon, ChevronRightIcon } from '../constants';
 import { Program } from '../types';
 import { useHomePageData } from '../hooks/useHomePageData';
@@ -649,6 +650,10 @@ const HomePage: React.FC = () => {
         
         <div className={`mt-2 ${activeProgram.themeClass}`}> {/* Ensure main content area gets theme class */}
           {renderProgramContent(activeProgram)}
+        </div>
+        {/* Referral Block at the bottom of the home screen */}
+        <div className="mt-10">
+          <ReferralBlock onToast={toastContext?.addToast} />
         </div>
       </main>
     </div>
