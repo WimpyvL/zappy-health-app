@@ -7,7 +7,7 @@ export const getAuthConfig = () => {
     // OAuth redirect URL - should point to this specific app
     redirectUrl: `${baseUrl}/auth/callback`,
     
-    // Site URL for Supabase configuration
+    // Site URL for backend OAuth configuration
     siteUrl: baseUrl,
     
     // Development vs Production settings

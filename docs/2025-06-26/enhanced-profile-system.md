@@ -66,7 +66,7 @@ pages/
 ### Type Definitions
 - **UserProfile**: Complete profile interface with all fields
 - **ProfileSettings**: Section configuration for tabbed interface
-- **Database Types**: Updated Supabase type definitions
+- **Database Types**: Updated API-driven type definitions
 
 ## Usage
 
@@ -195,7 +195,7 @@ const userAge = await enhancedProfileService.getUserAge(userId);
 ## Integration Points
 
 ### Authentication System
-- **Supabase Auth**: Full integration with existing auth
+- **API Auth service**: Full integration with existing auth
 - **Profile Creation**: Automatic profile creation on signup
 - **Session Management**: Profile data tied to auth sessions
 

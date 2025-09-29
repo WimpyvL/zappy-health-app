@@ -4,8 +4,7 @@
 
 - **[Complete Documentation Index](DOCUMENTATION_INDEX.md)** - Comprehensive list of all documentation files
 - **[AI Builder Instructions](AI_BUILDER_INSTRUCTIONS.md)** - Guidelines for AI assistants
-- **Setup & Configuration** - See `2025-06-25/` directory for setup guides
-- **Implementation Guides** - See `2025-06-26/` directory for feature implementations
+- **Implementation Guides** - See `2025-06-26/` directory for feature implementations and best practices
 
 ## 📁 Directory Structure
 
@@ -13,13 +12,6 @@ Documentation is organized in date-based subdirectories for better version contr
 
 ```
 docs/
-├── 2025-06-25/           # Initial setup and configuration docs
-│   ├── GOOGLE_OAUTH_SETUP.md
-│   ├── SUPABASE_SETUP.md
-│   ├── PATIENT_INTEGRATION.md
-│   ├── OAUTH_REDIRECT_CONFIG.md
-│   ├── DATA_MODELS_REFERENCE.md
-│   └── DOCUMENTATION_ORGANIZATION.md
 ├── 2025-06-26/           # Feature implementation and best practices
 │   ├── PATIENT_APP_DATA_ACQUISITION_BEST_PRACTICES.md
 │   ├── TREATMENT_COMPONENTS_IMPLEMENTATION.md
@@ -27,7 +19,8 @@ docs/
 │   ├── messaging-system-final-summary.md
 │   ├── enhanced-profile-system.md
 │   ├── profile-implementation-complete.md
-│   └── implementation-status.md
+│   ├── implementation-status.md
+│   └── PATIENT_REGISTRATION_FIX.md
 ├── AI_BUILDER_INSTRUCTIONS.md
 ├── DOCUMENTATION_INDEX.md
 └── README.md             # This file
@@ -35,32 +28,25 @@ docs/
 
 ## 🏗️ Documentation Organization
 
-### By Category
-
-**Setup & Configuration (2025-06-25/)**
-- `GOOGLE_OAUTH_SETUP.md` - Google OAuth implementation guide
-- `SUPABASE_SETUP.md` - Supabase database configuration
-- `PATIENT_INTEGRATION.md` - Patient data integration setup
-- `OAUTH_REDIRECT_CONFIG.md` - OAuth redirect configuration
-- `DATA_MODELS_REFERENCE.md` - Database schema and models reference
-
-**Implementation & Features (2025-06-26/)**
+### Implementation & Features (2025-06-26/)
 - `PATIENT_APP_DATA_ACQUISITION_BEST_PRACTICES.md` - Data acquisition best practices
 - `TREATMENT_COMPONENTS_IMPLEMENTATION.md` - Treatment component development
 - `ENHANCED_TREATMENT_CARDS.md` - Enhanced treatment card features
 - `messaging-system-final-summary.md` - Messaging system implementation
 - `enhanced-profile-system.md` - Profile system enhancements
 - `profile-implementation-complete.md` - Complete profile implementation guide
+- `implementation-status.md` - Project status overview
+- `PATIENT_REGISTRATION_FIX.md` - Patient registration updates
 
-**General Guidelines**
+### General Guidelines
 - `AI_BUILDER_INSTRUCTIONS.md` - Guidelines for AI assistants working on this project
 - `DOCUMENTATION_INDEX.md` - Comprehensive index of all documentation
 
 ## 🚀 Getting Started
 
-1. **New to the project?** Start with the setup guides in `2025-06-25/`
-2. **Looking for specific features?** Check the implementation guides in `2025-06-26/`
-3. **Need complete overview?** Review the [Documentation Index](DOCUMENTATION_INDEX.md)
+1. **New to the project?** Review the implementation guides in `2025-06-26/`
+2. **Looking for specific features?** Check the relevant guides in the documentation index
+3. **Need a complete overview?** Start with the [Documentation Index](DOCUMENTATION_INDEX.md)
 4. **AI Assistant?** Follow the [AI Builder Instructions](AI_BUILDER_INSTRUCTIONS.md)
 
 ## 📋 Documentation Standards
@@ -72,12 +58,12 @@ docs/
 
 For detailed guidelines on creating documentation, see [AI Builder Instructions](AI_BUILDER_INSTRUCTIONS.md).
 
-## � Quick Links
+## 🔗 Quick Links
 
 - **Project Root**: [Main README](../README.md)
-- **Setup Guide**: [Supabase Setup](2025-06-25/SUPABASE_SETUP.md)
-- **OAuth Setup**: [Google OAuth](2025-06-25/GOOGLE_OAUTH_SETUP.md)
-- **Patient Integration**: [Patient Setup](2025-06-25/PATIENT_INTEGRATION.md)
+- **Documentation Index**: [Index](DOCUMENTATION_INDEX.md)
+- **Profile System**: [Enhanced Profile System](2025-06-26/enhanced-profile-system.md)
+- **Messaging Overview**: [Messaging Summary](2025-06-26/messaging-system-final-summary.md)
 
 ---
 

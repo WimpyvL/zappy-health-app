@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { supabase } from '../../lib/supabase';
+import React, { useState } from 'react'
+import { apiClient } from '../../lib/apiClient'
 
 /**
  * Development tool for testing messaging functionality
@@ -7,73 +7,56 @@ import { supabase } from '../../lib/supabase';
  * for testing conversations and real-time messaging
  */
 export const MessagingTestUtils: React.FC = () => {
-  const [testUserId, setTestUserId] = useState<string>('00000000-0000-0000-0000-000000000010');
-  const [connected, setConnected] = useState(false);
+  const [testUserId, setTestUserId] = useState<string>('00000000-0000-0000-0000-000000000010')
+  const [connected, setConnected] = useState(false)
 
-  // Test user IDs for different personas
   const testUsers = [
     { id: '00000000-0000-0000-0000-000000000010', name: 'Test Patient', role: 'patient' },
     { id: '00000000-0000-0000-0000-000000000001', name: 'Dr. Sarah Chen', role: 'doctor' },
     { id: '00000000-0000-0000-0000-000000000002', name: 'Dr. Michael Torres', role: 'doctor' },
     { id: '00000000-0000-0000-0000-000000000003', name: 'Dr. Emily Rodriguez', role: 'doctor' },
-  ];
+  ]
 
   const handleUserSwitch = (userId: string) => {
-    setTestUserId(userId);
-    // In a real app, this would involve proper authentication
-    console.log(`Switched to test user: ${userId}`);
-  };
+    setTestUserId(userId)
+    console.log(`Switched to test user: ${userId}`)
+  }
 
   const testDatabaseConnection = async () => {
     try {
-      const { data, error } = await supabase
-        .from('conversations')
-        .select('*')
-        .limit(1);
-      
-      if (error) {
-        console.error('Database connection test failed:', error);
-        setConnected(false);
-      } else {
-        console.log('Database connection successful:', data);
-        setConnected(true);
-      }
-    } catch (err) {
-      console.error('Database connection error:', err);
-      setConnected(false);
+      const data = await apiClient.get('messaging/conversations', {
+        query: { userId: testUserId, limit: 1 }
+      })
+      console.log('API connection successful:', data)
+      setConnected(true)
+    } catch (error) {
+      console.error('API connection test failed:', error)
+      setConnected(false)
     }
-  };
+  }
 
   const createTestMessage = async () => {
     try {
-      const { data, error } = await supabase
-        .from('messages')
-        .insert({
-          conversation_id: '11111111-1111-1111-1111-111111111111',
-          sender_id: testUserId,
-          content: `Test message from ${testUsers.find(u => u.id === testUserId)?.name} at ${new Date().toLocaleTimeString()}`,
-        });
-
-      if (error) {
-        console.error('Failed to create test message:', error);
-      } else {
-        console.log('Test message created:', data);
-      }
-    } catch (err) {
-      console.error('Error creating test message:', err);
+      const response = await apiClient.post('messaging/conversations/11111111-1111-1111-1111-111111111111/messages', {
+        senderId: testUserId,
+        content: `Test message from ${testUsers.find(u => u.id === testUserId)?.name} at ${new Date().toLocaleTimeString()}`,
+      })
+      console.log('Test message created:', response)
+    } catch (error) {
+      console.error('Error creating test message:', error)
     }
-  };
+  }
 
   return (
     <div className="fixed bottom-4 right-4 bg-white border border-gray-300 rounded-lg shadow-lg p-4 max-w-sm z-50">
       <h3 className="text-sm font-semibold text-gray-800 mb-3">Messaging Test Utils</h3>
-      
+
       <div className="space-y-3">
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
             Test User Perspective
           </label>
-          <select 
+          <select
             value={testUserId}
             onChange={(e) => handleUserSwitch(e.target.value)}
             className="w-full text-xs border border-gray-300 rounded px-2 py-1"
@@ -92,7 +75,7 @@ export const MessagingTestUtils: React.FC = () => {
             onClick={testDatabaseConnection}
             className="flex-1 text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
           >
-            Test DB
+            Test API
           </button>
           <button
             onClick={createTestMessage}
@@ -114,7 +97,7 @@ export const MessagingTestUtils: React.FC = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default MessagingTestUtils;
+export default MessagingTestUtils

@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
 import { TreatmentWithCategory } from '../../types';
-import type { Database } from '../../lib/supabase';
 
-type Profile = Database['public']['Tables']['profiles']['Row'];
+interface UserProfile {
+  id: string;
+  email?: string | null;
+  full_name?: string | null;
+  avatar_url?: string | null;
+  [key: string]: unknown;
+}
 
 interface TreatmentDetailProps {
   treatment: TreatmentWithCategory;
   onBack: () => void;
   onStartTreatment: (treatment: TreatmentWithCategory) => void;
   onAddToCart: (treatment: TreatmentWithCategory) => void;
-  userProfile: Profile | null;
+  userProfile: UserProfile | null;
 }
 
 interface TreatmentDetailData {
@@ -25,7 +30,6 @@ interface TreatmentDetailData {
   isAvailable: boolean;
 }
 
-// Mock treatment detail data - in a real app, this would come from the database
 const getTreatmentDetails = (treatmentId: string): TreatmentDetailData => {
   const defaultDetails: TreatmentDetailData = {
     overview: "A comprehensive treatment designed to help you achieve your health goals safely and effectively.",
@@ -59,7 +63,6 @@ const getTreatmentDetails = (treatmentId: string): TreatmentDetailData => {
     isAvailable: true
   };
 
-  // Customize based on treatment type
   if (treatmentId.startsWith('wl')) {
     return {
       ...defaultDetails,
@@ -98,7 +101,7 @@ export const TreatmentDetail: React.FC<TreatmentDetailProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'details' | 'reviews'>('overview');
   const [quantity, setQuantity] = useState(1);
-  
+
   const details = getTreatmentDetails(treatment.id);
   const { name, description, themeClass, icon: TreatmentIcon, tag, category, categoryColor } = treatment;
 
@@ -110,7 +113,6 @@ export const TreatmentDetail: React.FC<TreatmentDetailProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Back Button */}
       <button
         onClick={onBack}
         className="flex items-center text-gray-600 hover:text-gray-900 mb-6 transition-colors"
@@ -122,7 +124,6 @@ export const TreatmentDetail: React.FC<TreatmentDetailProps> = ({
         Back to treatments
       </button>
 
-      {/* Treatment Header */}
       <div className={`treatment-detail-header ${themeClass} rounded-2xl p-6 mb-6`}>
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-4">
@@ -154,14 +155,13 @@ export const TreatmentDetail: React.FC<TreatmentDetailProps> = ({
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="border-b border-gray-200 mb-6">
         <nav className="-mb-px flex space-x-8">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+              className={`whitespace-nowrap pb-4 text-sm font-medium border-b-2 transition-colors focus:outline-none ${
                 activeTab === tab.id
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -173,19 +173,18 @@ export const TreatmentDetail: React.FC<TreatmentDetailProps> = ({
         </nav>
       </div>
 
-      {/* Tab Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-6">
           {activeTab === 'overview' && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-3">About this treatment</h2>
-                <p className="text-gray-600 leading-relaxed">{details.overview}</p>
-              </div>
+            <div className="bg-white rounded-2xl shadow-sm p-6 space-y-6">
+              <section>
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">Overview</h2>
+                <p className="text-gray-600">{details.overview}</p>
+              </section>
 
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">How it works</h3>
-                <ul className="space-y-2">
+              <section>
+                <h3 className="text-base font-semibold text-gray-900 mb-3">How It Works</h3>
+                <ul className="space-y-3">
                   {details.howItWorks.map((step, index) => (
                     <li key={index} className="flex items-start space-x-3">
                       <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium">
@@ -195,154 +194,130 @@ export const TreatmentDetail: React.FC<TreatmentDetailProps> = ({
                     </li>
                   ))}
                 </ul>
-              </div>
+              </section>
 
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Benefits</h3>
-                <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <section>
+                <h3 className="text-base font-semibold text-gray-900 mb-3">Benefits</h3>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {details.benefits.map((benefit, index) => (
-                    <li key={index} className="flex items-center space-x-2">
+                    <li key={index} className="flex items-center space-x-2 text-gray-600">
                       <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span className="text-gray-600">{benefit}</span>
+                      <span>{benefit}</span>
                     </li>
                   ))}
                 </ul>
-              </div>
+              </section>
             </div>
           )}
 
           {activeTab === 'details' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Dosage & Frequency</h3>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm text-gray-600 mb-2"><strong>Dosage:</strong> {details.dosage}</p>
-                    <p className="text-sm text-gray-600"><strong>Frequency:</strong> {details.frequency}</p>
+            <div className="bg-white rounded-2xl shadow-sm p-6 space-y-6">
+              <section>
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">Dosage & Frequency</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-blue-50 rounded-xl">
+                    <p className="text-sm text-gray-500 mb-1">Dosage</p>
+                    <p className="text-gray-900 font-semibold">{details.dosage}</p>
+                  </div>
+                  <div className="p-4 bg-purple-50 rounded-xl">
+                    <p className="text-sm text-gray-500 mb-1">Frequency</p>
+                    <p className="text-gray-900 font-semibold">{details.frequency}</p>
                   </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Treatment Duration</h3>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm text-gray-600">{details.duration}</p>
-                  </div>
-                </div>
-              </div>
+              </section>
 
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Important Information</h3>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <ul className="space-y-1">
-                    {details.contraindications.map((item, index) => (
-                      <li key={index} className="text-sm text-yellow-800">• {item}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Possible Side Effects</h3>
-                <ul className="space-y-2">
+              <section>
+                <h3 className="text-base font-semibold text-gray-900 mb-3">Potential Side Effects</h3>
+                <ul className="space-y-2 text-gray-600">
                   {details.sideEffects.map((effect, index) => (
-                    <li key={index} className="flex items-start space-x-2">
-                      <svg className="w-5 h-5 text-orange-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                      </svg>
-                      <span className="text-gray-600">{effect}</span>
-                    </li>
+                    <li key={index}>• {effect}</li>
                   ))}
                 </ul>
-              </div>
+              </section>
+
+              <section>
+                <h3 className="text-base font-semibold text-gray-900 mb-3">Contraindications</h3>
+                <ul className="space-y-2 text-gray-600">
+                  {details.contraindications.map((item, index) => (
+                    <li key={index}>• {item}</li>
+                  ))}
+                </ul>
+              </section>
             </div>
           )}
 
           {activeTab === 'reviews' && (
-            <div className="space-y-6">
-              <div className="text-center py-12">
-                <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 8h10m0 0V6a2 2 0 00-2-2H9a2 2 0 00-2 2v2m10 0v10a2 2 0 01-2 2H9a2 2 0 01-2-2V8m10 0H7" />
-                </svg>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Reviews coming soon</h3>
-                <p className="text-gray-600">Patient reviews and testimonials will be available here.</p>
-              </div>
+            <div className="bg-white rounded-2xl shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Patient Testimonials</h2>
+              <p className="text-gray-600">
+                We're gathering more feedback from patients currently on this treatment. Check back soon for updates!
+              </p>
             </div>
           )}
         </div>
 
-        {/* Sidebar - Actions */}
-        <div className="lg:col-span-1">
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 sticky top-6">
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Start your treatment</h3>
-              
-              {details.isAvailable ? (
-                <div className="space-y-4">
-                  <div>
-                    <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-2">
-                      Quantity
-                    </label>
-                    <select
-                      id="quantity"
-                      value={quantity}
-                      onChange={(e) => setQuantity(parseInt(e.target.value))}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      {[1, 2, 3, 6, 12].map(num => (
-                        <option key={num} value={num}>
-                          {num} month{num > 1 ? 's' : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+        <aside className="lg:col-span-1 space-y-6">
+          <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+            <div>
+              <p className="text-sm text-gray-500">Starting at</p>
+              <div className="text-3xl font-bold text-gray-900">
+                ${details.price}
+                <span className="text-sm font-normal text-gray-500">/month</span>
+              </div>
+            </div>
 
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900 mb-1">
-                      ${details.price * quantity}
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      {quantity === 1 ? 'Per month' : `For ${quantity} months`}
-                    </p>
-                  </div>
+            <div className="space-y-3">
+              <button
+                onClick={() => onStartTreatment(treatment)}
+                className="w-full py-2 px-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+              >
+                Start Treatment
+              </button>
+              <button
+                onClick={() => onAddToCart(treatment)}
+                className="w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+              >
+                Add to Cart
+              </button>
+            </div>
 
-                  <button
-                    onClick={() => onStartTreatment(treatment)}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                  >
-                    Start consultation
-                  </button>
-
-                  <button
-                    onClick={() => onAddToCart(treatment)}
-                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold py-3 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                  >
-                    Add to cart
-                  </button>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <p className="text-red-600 mb-4">Currently unavailable</p>
-                  <button
-                    disabled
-                    className="w-full bg-gray-300 text-gray-500 font-semibold py-3 px-4 rounded-lg cursor-not-allowed"
-                  >
-                    Notify when available
-                  </button>
-                </div>
-              )}
+            <div>
+              <label className="block text-xs text-gray-500 mb-1" htmlFor="quantity">
+                Monthly Supply
+              </label>
+              <input
+                id="quantity"
+                type="number"
+                min={1}
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              />
             </div>
 
             {userProfile && (
-              <div className="border-t border-gray-200 pt-6">
-                <h4 className="text-sm font-medium text-gray-900 mb-2">Hello, {userProfile.full_name || 'Patient'}</h4>
-                <p className="text-xs text-gray-600">
-                  This treatment will be personalized for your health profile.
+              <div className="text-sm text-gray-600 bg-gray-50 rounded-xl p-4">
+                <p className="font-semibold text-gray-900 mb-1">Personalized for you</p>
+                <p>
+                  Based on your profile{userProfile.full_name ? `, ${userProfile.full_name}` : ''}, this treatment plan will be
+                  tailored to your goals and medical history.
                 </p>
               </div>
             )}
           </div>
-        </div>
+
+          <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+            <h3 className="text-sm font-semibold text-gray-900">What's Included</h3>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li>Personalized treatment plan</li>
+              <li>Regular check-ins with medical team</li>
+              <li>24/7 support via secure messaging</li>
+              <li>Flexible refill management</li>
+            </ul>
+          </div>
+        </aside>
       </div>
     </div>
   );

@@ -1,8 +1,10 @@
-import { supabase } from '../lib/supabase';
-import type { Database } from '../lib/supabase';
+import { apiClient } from '../lib/apiClient'
+import type { Profile } from './database'
 
-type Profile = Database['public']['Tables']['profiles']['Row'];
-type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
+type ProfileUpdate = Partial<Profile>
+
+type PreferencesPayload = Partial<Profile['preferences']>
+type MedicalInfoPayload = Partial<Profile['medical_info']>
 
 /**
  * Enhanced Profile Service
@@ -14,21 +16,10 @@ export class EnhancedProfileService {
    */
   async getProfile(userId: string): Promise<Profile | null> {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return null;
-      }
-
-      return data;
+      return await apiClient.get<Profile>(`profiles/${userId}`)
     } catch (error) {
-      console.error('Error in getProfile:', error);
-      return null;
+      console.error('Error fetching profile:', error)
+      return null
     }
   }
 
@@ -37,73 +28,40 @@ export class EnhancedProfileService {
    */
   async updateProfile(userId: string, updates: ProfileUpdate): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', userId);
-
-      if (error) {
-        console.error('Error updating profile:', error);
-        return false;
-      }
-
-      return true;
+      await apiClient.patch(`profiles/${userId}`, {
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      return true
     } catch (error) {
-      console.error('Error in updateProfile:', error);
-      return false;
+      console.error('Error updating profile:', error)
+      return false
     }
   }
 
   /**
    * Update user preferences safely
    */
-  async updatePreferences(
-    userId: string, 
-    preferences: Partial<Profile['preferences']>
-  ): Promise<boolean> {
+  async updatePreferences(userId: string, preferences: PreferencesPayload): Promise<boolean> {
     try {
-      const { error } = await supabase.rpc('update_user_preferences', {
-        user_id: userId,
-        new_preferences: preferences
-      });
-
-      if (error) {
-        console.error('Error updating preferences:', error);
-        return false;
-      }
-
-      return true;
+      await apiClient.patch(`profiles/${userId}/preferences`, { preferences })
+      return true
     } catch (error) {
-      console.error('Error in updatePreferences:', error);
-      return false;
+      console.error('Error updating preferences:', error)
+      return false
     }
   }
 
   /**
    * Update medical information safely
    */
-  async updateMedicalInfo(
-    userId: string,
-    medicalInfo: Partial<Profile['medical_info']>
-  ): Promise<boolean> {
+  async updateMedicalInfo(userId: string, medicalInfo: MedicalInfoPayload): Promise<boolean> {
     try {
-      const { error } = await supabase.rpc('update_medical_info', {
-        user_id: userId,
-        new_medical_info: medicalInfo
-      });
-
-      if (error) {
-        console.error('Error updating medical info:', error);
-        return false;
-      }
-
-      return true;
+      await apiClient.patch(`profiles/${userId}/medical-info`, { medicalInfo })
+      return true
     } catch (error) {
-      console.error('Error in updateMedicalInfo:', error);
-      return false;
+      console.error('Error updating medical info:', error)
+      return false
     }
   }
 
@@ -112,19 +70,11 @@ export class EnhancedProfileService {
    */
   async getUserAge(userId: string): Promise<number | null> {
     try {
-      const { data, error } = await supabase.rpc('get_user_age', {
-        user_id: userId
-      });
-
-      if (error) {
-        console.error('Error getting user age:', error);
-        return null;
-      }
-
-      return data;
+      const response = await apiClient.get<{ age: number }>(`profiles/${userId}/age`)
+      return typeof response?.age === 'number' ? response.age : null
     } catch (error) {
-      console.error('Error in getUserAge:', error);
-      return null;
+      console.error('Error getting user age:', error)
+      return null
     }
   }
 
@@ -133,40 +83,28 @@ export class EnhancedProfileService {
    */
   async uploadAvatar(userId: string, file: File): Promise<string | null> {
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const formData = new FormData()
+      formData.append('avatar', file)
 
-      // Upload file to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, { upsert: true });
+      const response = await apiClient.post<{ url: string }>(`profiles/${userId}/avatar`, formData)
+      const avatarUrl = response?.url
 
-      if (uploadError) {
-        console.error('Error uploading avatar:', uploadError);
-        return null;
+      if (!avatarUrl) {
+        return null
       }
 
-      // Get public URL
-      const { data } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      const avatarUrl = data.publicUrl;
-
-      // Update profile with new avatar URL
       const updateSuccess = await this.updateProfile(userId, {
         avatar_url: avatarUrl
-      });
+      })
 
       if (!updateSuccess) {
-        return null;
+        return null
       }
 
-      return avatarUrl;
+      return avatarUrl
     } catch (error) {
-      console.error('Error in uploadAvatar:', error);
-      return null;
+      console.error('Error uploading avatar:', error)
+      return null
     }
   }
 
@@ -175,34 +113,13 @@ export class EnhancedProfileService {
    */
   async deleteAvatar(userId: string): Promise<boolean> {
     try {
-      // Get current profile to find avatar path
-      const profile = await this.getProfile(userId);
-      if (!profile?.avatar_url) {
-        return true; // No avatar to delete
-      }
-
-      // Extract file path from URL
-      const url = new URL(profile.avatar_url);
-      const filePath = url.pathname.split('/storage/v1/object/public/avatars/')[1];
-
-      if (filePath) {
-        // Delete from storage
-        const { error: deleteError } = await supabase.storage
-          .from('avatars')
-          .remove([filePath]);
-
-        if (deleteError) {
-          console.error('Error deleting avatar file:', deleteError);
-        }
-      }
-
-      // Update profile to remove avatar URL
+      await apiClient.delete(`profiles/${userId}/avatar`)
       return await this.updateProfile(userId, {
         avatar_url: null
-      });
+      })
     } catch (error) {
-      console.error('Error in deleteAvatar:', error);
-      return false;
+      console.error('Error deleting avatar:', error)
+      return false
     }
   }
 
@@ -214,12 +131,12 @@ export class EnhancedProfileService {
       'full_name',
       'phone_number',
       'date_of_birth'
-    ];
+    ]
 
-    return requiredFields.every(field => 
-      profile[field as keyof Profile] !== null && 
+    return requiredFields.every(field =>
+      profile[field as keyof Profile] !== null &&
       profile[field as keyof Profile] !== ''
-    );
+    )
   }
 
   /**
@@ -234,64 +151,59 @@ export class EnhancedProfileService {
       'avatar_url',
       'emergency_contact',
       'medical_info'
-    ];
+    ]
 
     const completedFields = allFields.filter(field => {
-      const value = profile[field as keyof Profile];
-      if (value === null || value === '') return false;
-      if (typeof value === 'object' && Object.keys(value).length === 0) return false;
-      return true;
-    });
+      const value = profile[field as keyof Profile]
+      if (value === null || value === '') return false
+      if (typeof value === 'object' && value !== null && Object.keys(value as Record<string, unknown>).length === 0) return false
+      return true
+    })
 
-    return Math.round((completedFields.length / allFields.length) * 100);
+    return Math.round((completedFields.length / allFields.length) * 100)
   }
 
   /**
    * Validate profile data before update
    */
   validateProfileData(data: Partial<Profile>): { isValid: boolean; errors: string[] } {
-    const errors: string[] = [];
+    const errors: string[] = []
 
-    // Validate email format
     if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-      errors.push('Invalid email format');
+      errors.push('Invalid email format')
     }
 
-    // Validate phone number format (basic validation)
-    if (data.phone_number && !/^[\+]?[1-9][\d]{0,15}$/.test(data.phone_number.replace(/\s/g, ''))) {
-      errors.push('Invalid phone number format');
+    if (data.phone_number && !/^[\+]?[1-9][\d]{0,15}$/.test(String(data.phone_number).replace(/\s/g, ''))) {
+      errors.push('Invalid phone number format')
     }
 
-    // Validate date of birth (not in future, reasonable age range)
     if (data.date_of_birth) {
-      const birthDate = new Date(data.date_of_birth);
-      const today = new Date();
-      const age = today.getFullYear() - birthDate.getFullYear();
-      
+      const birthDate = new Date(data.date_of_birth)
+      const today = new Date()
+      const age = today.getFullYear() - birthDate.getFullYear()
+
       if (birthDate > today) {
-        errors.push('Date of birth cannot be in the future');
+        errors.push('Date of birth cannot be in the future')
       } else if (age > 120) {
-        errors.push('Invalid date of birth');
+        errors.push('Invalid date of birth')
       }
     }
 
-    // Validate medical info ranges
     if (data.medical_info) {
-      const { height, weight } = data.medical_info;
+      const { height, weight } = data.medical_info
       if (height && (height < 50 || height > 300)) {
-        errors.push('Height must be between 50-300 cm');
+        errors.push('Height must be between 50-300 cm')
       }
       if (weight && (weight < 20 || weight > 500)) {
-        errors.push('Weight must be between 20-500 kg');
+        errors.push('Weight must be between 20-500 kg')
       }
     }
 
     return {
       isValid: errors.length === 0,
       errors
-    };
+    }
   }
 }
 
-// Export singleton instance
-export const enhancedProfileService = new EnhancedProfileService();
+export const enhancedProfileService = new EnhancedProfileService()

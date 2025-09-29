@@ -77,14 +77,14 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 ## How to Apply the Fix
 
 ### For New Databases
-1. Run the updated `supabase/setup.sql` script
-2. This will create all tables including the new patients table
+1. Apply the latest patient onboarding migrations in the backend service
+2. This ensures all required tables (including `patients`) are present
 
 ### For Existing Databases
 1. **Run the migration script:**
    ```sql
-   -- Copy and paste the content of supabase/patients_table_migration.sql
-   -- into your Supabase SQL editor and execute
+   -- Execute the patient onboarding migration SQL provided by the backend team
+   -- Run it against your production database using your preferred migration tool
    ```
 
 2. **Verify the fix:**

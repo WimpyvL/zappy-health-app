@@ -1,19 +1,39 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { User, Session, AuthError } from '@supabase/supabase-js'
-import { supabase } from '../lib/supabase'
+import { apiClient, clearApiAuthToken, setApiAuthToken } from '../lib/apiClient'
 import { getAuthConfig } from '../lib/auth-config'
-import { profileService, patientService } from '../services/database'
-import type { Database } from '../lib/supabase'
+import { profileService, patientService, type Profile } from '../services/database'
 
-type Profile = Database['public']['Tables']['profiles']['Row']
+type AuthError = { message: string }
+
+type AuthUserMetadata = Record<string, unknown>
+
+export interface AuthUser {
+  id: string
+  email: string
+  full_name?: string | null
+  avatar_url?: string | null
+  metadata?: AuthUserMetadata
+  [key: string]: unknown
+}
+
+export interface AuthSession {
+  accessToken: string
+  refreshToken?: string | null
+  expiresAt?: string | null
+  user: AuthUser
+}
 
 interface AuthContextType {
-  user: User | null
-  session: Session | null
+  user: AuthUser | null
+  session: AuthSession | null
   profile: Profile | null
   loading: boolean
   profileLoading: boolean
-  signUp: (email: string, password: string, options?: { data?: any }) => Promise<{ error: AuthError | null }>
+  signUp: (
+    email: string,
+    password: string,
+    options?: { data?: AuthUserMetadata }
+  ) => Promise<{ error: AuthError | null }>
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signInWithGoogle: () => Promise<{ error: AuthError | null }>
   signOut: () => Promise<{ error: AuthError | null }>
@@ -36,42 +56,86 @@ interface AuthProviderProps {
   children: React.ReactNode
 }
 
+interface SessionPayload {
+  user: AuthUser
+  session?: {
+    accessToken: string
+    refreshToken?: string | null
+    expiresAt?: string | null
+  }
+  accessToken?: string
+  refreshToken?: string | null
+  expiresAt?: string | null
+}
+
+const ACCESS_TOKEN_KEY = 'api_access_token'
+const REFRESH_TOKEN_KEY = 'api_refresh_token'
+
+const extractSession = (payload: SessionPayload | null | undefined): AuthSession | null => {
+  if (!payload) return null
+  const accessToken = payload.session?.accessToken ?? payload.accessToken
+  if (!accessToken) {
+    return null
+  }
+  return {
+    accessToken,
+    refreshToken: payload.session?.refreshToken ?? payload.refreshToken ?? null,
+    expiresAt: payload.session?.expiresAt ?? payload.expiresAt ?? null,
+    user: payload.user,
+  }
+}
+
+const persistSession = (session: AuthSession | null) => {
+  if (typeof window === 'undefined') return
+
+  if (session) {
+    window.localStorage.setItem(ACCESS_TOKEN_KEY, session.accessToken)
+    if (session.refreshToken) {
+      window.localStorage.setItem(REFRESH_TOKEN_KEY, session.refreshToken)
+    } else {
+      window.localStorage.removeItem(REFRESH_TOKEN_KEY)
+    }
+    setApiAuthToken(session.accessToken)
+  } else {
+    window.localStorage.removeItem(ACCESS_TOKEN_KEY)
+    window.localStorage.removeItem(REFRESH_TOKEN_KEY)
+    clearApiAuthToken()
+  }
+}
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const [session, setSession] = useState<AuthSession | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [profileLoading, setProfileLoading] = useState(false)
 
-  // Function to fetch and set profile data
   const loadProfile = async (userId: string) => {
     setProfileLoading(true)
     try {
       const profileData = await profileService.getProfile(userId)
-      
+
       if (profileData) {
         setProfile(profileData)
       } else {
-        // Create profile if it doesn't exist
-        const newProfile = {
+        const newProfile: Partial<Profile> & Pick<Profile, 'id' | 'email'> = {
           id: userId,
           email: user?.email || '',
-          full_name: user?.user_metadata?.full_name || '',
-          avatar_url: null,
+          full_name: user?.full_name ?? null,
+          avatar_url: user?.avatar_url ?? null,
         }
-        
+
         const success = await profileService.createProfile(newProfile)
         if (success) {
-          setProfile(newProfile as Profile)
+          setProfile({ ...newProfile })
         }
       }
 
-      // Also check if patient record exists, create if not
       const patientData = await patientService.getPatient(userId)
       if (!patientData) {
         console.log('No patient record found, creating one for existing user')
-        // Extract first name from full name or user metadata
-        const fullName = user?.user_metadata?.full_name || profileData?.full_name || ''
+        const metadataName = typeof user?.metadata?.full_name === 'string' ? user.metadata.full_name : ''
+        const fullName = (metadataName as string) || user?.full_name || ''
         const firstName = fullName.split(' ')[0] || 'Patient'
         const lastName = fullName.split(' ').slice(1).join(' ') || ''
 
@@ -98,14 +162,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
-  // Function to refresh profile data
   const refreshProfile = async () => {
     if (user) {
       await loadProfile(user.id)
     }
   }
 
-  // Function to update profile
   const updateProfile = async (updates: Partial<Profile>): Promise<boolean> => {
     if (!user || !profile) return false
 
@@ -121,29 +183,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return success
   }
 
-  // Function to handle new user registration (ensures both profile and patient are created)
-  const handleNewUserRegistration = async (userId: string, userEmail: string, userMetadata?: any) => {
+  const handleNewUserRegistration = async (userId: string, userEmail: string, userMetadata?: AuthUserMetadata) => {
     try {
       console.log('Handling new user registration for:', userEmail)
-      
-      // Create profile
-      const newProfile = {
+
+      const newProfile: Partial<Profile> & Pick<Profile, 'id' | 'email'> = {
         id: userId,
         email: userEmail,
-        full_name: userMetadata?.full_name || '',
+        full_name: typeof userMetadata?.full_name === 'string' ? (userMetadata.full_name as string) : null,
         avatar_url: null,
       }
-      
+
       const profileCreated = await profileService.createProfile(newProfile)
       if (profileCreated) {
-        setProfile(newProfile as Profile)
+        setProfile({ ...newProfile })
         console.log('Profile created successfully')
       } else {
         console.error('Failed to create profile')
       }
 
-      // Create patient record
-      const fullName = userMetadata?.full_name || ''
+      const fullName = typeof userMetadata?.full_name === 'string' ? (userMetadata.full_name as string) : ''
       const firstName = fullName.split(' ')[0] || 'Patient'
       const lastName = fullName.split(' ').slice(1).join(' ') || ''
 
@@ -167,96 +226,133 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      
-      // Load profile if user is authenticated
-      if (session?.user) {
-        loadProfile(session.user.id)
-      } else {
-        setProfile(null)
+  const bootstrapSession = async () => {
+    setLoading(true)
+    try {
+      if (typeof window === 'undefined') {
+        setLoading(false)
+        return
       }
-      
-      setLoading(false)
-    })
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      
-      // Handle different auth events
-      if (session?.user) {
-        if (event === 'SIGNED_IN') {
-          // Check if this is a new user by looking for existing profile
-          const existingProfile = await profileService.getProfile(session.user.id)
-          if (!existingProfile) {
-            // New user registration - create both profile and patient
-            await handleNewUserRegistration(
-              session.user.id, 
-              session.user.email || '', 
-              session.user.user_metadata
-            )
-          } else {
-            // Existing user sign in - load existing profile and ensure patient exists
-            await loadProfile(session.user.id)
-          }
+      const storedToken = window.localStorage.getItem(ACCESS_TOKEN_KEY)
+      if (!storedToken) {
+        setLoading(false)
+        return
+      }
+
+      setApiAuthToken(storedToken)
+      try {
+        const sessionResponse = await apiClient.get<SessionPayload>('auth/session')
+        const extracted = extractSession(sessionResponse)
+        if (extracted) {
+          setSession(extracted)
+          setUser(extracted.user)
+          persistSession(extracted)
+          await loadProfile(extracted.user.id)
+        } else {
+          persistSession(null)
         }
-      } else if (event === 'SIGNED_OUT') {
-        setProfile(null)
+      } catch (error) {
+        console.error('Error restoring session:', error)
+        persistSession(null)
       }
-      
+    } finally {
       setLoading(false)
-    })
+    }
+  }
 
-    return () => subscription.unsubscribe()
+  useEffect(() => {
+    bootstrapSession()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const signUp = async (email: string, password: string, options?: { data?: any }) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options
-    })
-    return { error }
-  }
+  const signUp: AuthContextType['signUp'] = async (email, password, options) => {
+    try {
+      const response = await apiClient.post<SessionPayload>('auth/register', {
+        email,
+        password,
+        metadata: options?.data,
+      }, { skipAuth: true })
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    })
-    return { error }
-  }
-
-  const signInWithGoogle = async () => {
-    const authConfig = getAuthConfig()
-    
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: authConfig.redirectUrl,
-        queryParams: {
-          ...authConfig.googleOAuthOptions
-        }
+      const extracted = extractSession(response)
+      if (extracted) {
+        setSession(extracted)
+        setUser(extracted.user)
+        persistSession(extracted)
+        await handleNewUserRegistration(extracted.user.id, email, options?.data)
+        await loadProfile(extracted.user.id)
       }
-    })
-    return { error }
+
+      return { error: null }
+    } catch (error) {
+      console.error('Error signing up:', error)
+      return { error: { message: (error as Error).message } }
+    }
   }
 
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut()
-    return { error }
+  const signIn: AuthContextType['signIn'] = async (email, password) => {
+    try {
+      const response = await apiClient.post<SessionPayload>('auth/login', {
+        email,
+        password,
+      }, { skipAuth: true })
+
+      const extracted = extractSession(response)
+      if (extracted) {
+        setSession(extracted)
+        setUser(extracted.user)
+        persistSession(extracted)
+        await loadProfile(extracted.user.id)
+      }
+
+      return { error: null }
+    } catch (error) {
+      console.error('Error signing in:', error)
+      return { error: { message: (error as Error).message } }
+    }
   }
 
-  const resetPassword = async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email)
-    return { error }
+  const signInWithGoogle: AuthContextType['signInWithGoogle'] = async () => {
+    try {
+      const authConfig = getAuthConfig()
+      const response = await apiClient.post<{ url: string }>('auth/oauth/google', {
+        redirectTo: authConfig.redirectUrl,
+      }, { skipAuth: true })
+
+      if (response?.url) {
+        window.location.href = response.url
+      }
+
+      return { error: null }
+    } catch (error) {
+      console.error('Error initiating Google sign-in:', error)
+      return { error: { message: (error as Error).message } }
+    }
+  }
+
+  const signOut: AuthContextType['signOut'] = async () => {
+    try {
+      await apiClient.post('auth/logout')
+    } catch (error) {
+      console.error('Error signing out:', error)
+    } finally {
+      setUser(null)
+      setSession(null)
+      setProfile(null)
+      persistSession(null)
+    }
+
+    return { error: null }
+  }
+
+  const resetPassword: AuthContextType['resetPassword'] = async (email) => {
+    try {
+      await apiClient.post('auth/reset-password', { email }, { skipAuth: true })
+      return { error: null }
+    } catch (error) {
+      console.error('Error requesting password reset:', error)
+      return { error: { message: (error as Error).message } }
+    }
   }
 
   const value: AuthContextType = {
@@ -271,12 +367,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signOut,
     resetPassword,
     updateProfile,
-    refreshProfile
+    refreshProfile,
   }
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

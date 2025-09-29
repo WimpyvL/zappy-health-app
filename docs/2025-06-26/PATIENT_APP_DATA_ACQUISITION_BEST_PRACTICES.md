@@ -131,7 +131,7 @@ While RLS handles access control, client-side validation and data integrity chec
 
 The patient-facing app's data acquisition relies heavily on the following:
 
-*   **Supabase Client**: The primary library for interacting with the PostgreSQL database and its RLS policies.
+*   **API Client**: The shared fetch wrapper (`lib/apiClient.ts`) used for communicating with the backend service layer.
 *   **React Query**: Used for managing server state, caching, and simplifying data fetching logic.
 *   **API Hooks**: Custom hooks (e.g., in `src/apis/`) that encapsulate the logic for interacting with specific data entities.
 *   **Database Schema**: The underlying database structure, as detailed in [`docs/architecture/databasexp.md`](docs/architecture/databasexp.md), dictates the available data and relationships.

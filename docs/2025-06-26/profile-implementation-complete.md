@@ -29,7 +29,7 @@
 4. **Updated Type System** (`types.ts` & `lib/supabase.ts`)
    - Comprehensive UserProfile interface
    - ProfileSettings for section configuration
-   - Updated Supabase database types
+   - Updated API-facing data models
    - Type safety across all profile operations
 
 ### 🎨 **User Experience Features**
@@ -144,7 +144,7 @@ pages/
 
 ### Database Setup
 1. Run the enhanced profile schema: `\i supabase/enhanced_profile_schema.sql`
-2. Configure avatar storage bucket in Supabase
+2. Configure avatar storage bucket in the media service
 3. Set up appropriate RLS policies
 
 ### Features Available

@@ -1,256 +1,226 @@
-import { supabase } from '../lib/supabase'
-import type { Database } from '../lib/supabase'
+import { apiClient } from '../lib/apiClient'
 
-type Tables = Database['public']['Tables']
-type Profile = Tables['profiles']['Row']
-type HealthRecord = Tables['health_records']['Row']
-type Order = Tables['orders']['Row']
-type Patient = Tables['patients']['Row']
-type PatientInsert = Tables['patients']['Insert']
-type PatientUpdate = Tables['patients']['Update']
+export interface Profile {
+  id: string
+  email: string
+  full_name?: string | null
+  avatar_url?: string | null
+  [key: string]: unknown
+}
+
+export interface HealthRecord {
+  id: string
+  user_id: string
+  record_type: string
+  data: Record<string, unknown>
+  created_at: string
+  updated_at: string
+  notes?: string | null
+  [key: string]: unknown
+}
+
+export interface Order {
+  id: string
+  user_id: string
+  status: string
+  total_amount: number
+  items: Record<string, unknown>[] | Record<string, unknown>
+  created_at: string
+  updated_at: string
+  shipping_address?: Record<string, unknown> | null
+  [key: string]: unknown
+}
+
+export interface Patient {
+  id: string
+  user_id: string
+  first_name: string
+  last_name: string | null
+  email: string
+  date_of_birth: string | null
+  weight: number | null
+  height: number | null
+  target_weight: number | null
+  created_at: string
+  updated_at: string
+  [key: string]: unknown
+}
+
+export type PatientInsert = Partial<Omit<Patient, 'id'>> & Pick<Patient, 'user_id' | 'first_name' | 'email'>
+export type PatientUpdate = Partial<Omit<Patient, 'id' | 'user_id'>>
+
+const handleError = (message: string, error: unknown) => {
+  console.error(message, error)
+}
 
 // Profile Services
 export const profileService = {
   async getProfile(userId: string): Promise<Profile | null> {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-
-    if (error) {
-      console.error('Error fetching profile:', error)
+    try {
+      return await apiClient.get<Profile>(`profiles/${userId}`)
+    } catch (error) {
+      handleError('Error fetching profile:', error)
       return null
     }
-
-    return data
   },
 
   async updateProfile(userId: string, updates: Partial<Profile>): Promise<boolean> {
-    const { error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', userId)
-
-    if (error) {
-      console.error('Error updating profile:', error)
+    try {
+      await apiClient.patch(`profiles/${userId}`, updates)
+      return true
+    } catch (error) {
+      handleError('Error updating profile:', error)
       return false
     }
-
-    return true
   },
 
-  async createProfile(profile: Tables['profiles']['Insert']): Promise<boolean> {
-    const { error } = await supabase
-      .from('profiles')
-      .insert(profile)
-
-    if (error) {
-      console.error('Error creating profile:', error)
+  async createProfile(profile: Partial<Profile> & Pick<Profile, 'id' | 'email'>): Promise<boolean> {
+    try {
+      await apiClient.post('profiles', profile)
+      return true
+    } catch (error) {
+      handleError('Error creating profile:', error)
       return false
     }
-
-    return true
   }
 }
 
 // Health Records Services
 export const healthRecordsService = {
   async getUserHealthRecords(userId: string): Promise<HealthRecord[]> {
-    const { data, error } = await supabase
-      .from('health_records')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('Error fetching health records:', error)
+    try {
+      return await apiClient.get<HealthRecord[]>(`health-records`, {
+        query: { userId }
+      })
+    } catch (error) {
+      handleError('Error fetching health records:', error)
       return []
     }
-
-    return data || []
   },
 
-  async createHealthRecord(record: Tables['health_records']['Insert']): Promise<boolean> {
-    const { error } = await supabase
-      .from('health_records')
-      .insert(record)
-
-    if (error) {
-      console.error('Error creating health record:', error)
+  async createHealthRecord(record: Partial<HealthRecord> & Pick<HealthRecord, 'user_id' | 'record_type' | 'data'>): Promise<boolean> {
+    try {
+      await apiClient.post('health-records', record)
+      return true
+    } catch (error) {
+      handleError('Error creating health record:', error)
       return false
     }
-
-    return true
   },
 
-  async updateHealthRecord(id: string, updates: Tables['health_records']['Update']): Promise<boolean> {
-    const { error } = await supabase
-      .from('health_records')
-      .update(updates)
-      .eq('id', id)
-
-    if (error) {
-      console.error('Error updating health record:', error)
+  async updateHealthRecord(id: string, updates: Partial<HealthRecord>): Promise<boolean> {
+    try {
+      await apiClient.patch(`health-records/${id}`, updates)
+      return true
+    } catch (error) {
+      handleError('Error updating health record:', error)
       return false
     }
-
-    return true
   },
 
   async deleteHealthRecord(id: string): Promise<boolean> {
-    const { error } = await supabase
-      .from('health_records')
-      .delete()
-      .eq('id', id)
-
-    if (error) {
-      console.error('Error deleting health record:', error)
+    try {
+      await apiClient.delete(`health-records/${id}`)
+      return true
+    } catch (error) {
+      handleError('Error deleting health record:', error)
       return false
     }
-
-    return true
   }
 }
 
 // Orders Services
 export const ordersService = {
   async getUserOrders(userId: string): Promise<Order[]> {
-    const { data, error } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('Error fetching orders:', error)
+    try {
+      return await apiClient.get<Order[]>(`orders`, {
+        query: { userId }
+      })
+    } catch (error) {
+      handleError('Error fetching orders:', error)
       return []
     }
-
-    return data || []
   },
 
-  async createOrder(order: Tables['orders']['Insert']): Promise<string | null> {
-    const { data, error } = await supabase
-      .from('orders')
-      .insert(order)
-      .select('id')
-      .single()
-
-    if (error) {
-      console.error('Error creating order:', error)
+  async createOrder(order: Partial<Order> & Pick<Order, 'user_id' | 'status' | 'total_amount' | 'items'>): Promise<string | null> {
+    try {
+      const response = await apiClient.post<{ id: string }>('orders', order)
+      return response.id
+    } catch (error) {
+      handleError('Error creating order:', error)
       return null
     }
-
-    return data?.id || null
   },
 
   async updateOrderStatus(orderId: string, status: string): Promise<boolean> {
-    const { error } = await supabase
-      .from('orders')
-      .update({ status, updated_at: new Date().toISOString() })
-      .eq('id', orderId)
-
-    if (error) {
-      console.error('Error updating order status:', error)
+    try {
+      await apiClient.patch(`orders/${orderId}`, { status, updated_at: new Date().toISOString() })
+      return true
+    } catch (error) {
+      handleError('Error updating order status:', error)
       return false
     }
-
-    return true
   },
 
   async getOrder(orderId: string): Promise<Order | null> {
-    const { data, error } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('id', orderId)
-      .single()
-
-    if (error) {
-      console.error('Error fetching order:', error)
+    try {
+      return await apiClient.get<Order>(`orders/${orderId}`)
+    } catch (error) {
+      handleError('Error fetching order:', error)
       return null
     }
-
-    return data
   }
 }
 
 // Patient Services
 export const patientService = {
   async getPatient(userId: string): Promise<Patient | null> {
-    const { data, error } = await supabase
-      .from('patients')
-      .select('*')
-      .eq('user_id', userId)
-      .single()
-
-    if (error) {
-      console.error('Error fetching patient:', error)
+    try {
+      return await apiClient.get<Patient>(`patients/by-user/${userId}`)
+    } catch (error) {
+      handleError('Error fetching patient:', error)
       return null
     }
-
-    return data
   },
 
   async createPatient(patient: PatientInsert): Promise<boolean> {
-    const { error } = await supabase
-      .from('patients')
-      .insert(patient)
-
-    if (error) {
-      console.error('Error creating patient:', error)
+    try {
+      await apiClient.post('patients', patient)
+      return true
+    } catch (error) {
+      handleError('Error creating patient:', error)
       return false
     }
-
-    return true
   },
 
   async updatePatient(userId: string, updates: PatientUpdate): Promise<boolean> {
-    const { error } = await supabase
-      .from('patients')
-      .update(updates)
-      .eq('user_id', userId)
-
-    if (error) {
-      console.error('Error updating patient:', error)
+    try {
+      await apiClient.patch(`patients/by-user/${userId}`, updates)
+      return true
+    } catch (error) {
+      handleError('Error updating patient:', error)
       return false
     }
-
-    return true
   }
 }
 
-// Real-time subscriptions
+// Real-time subscriptions (placeholder implementations until sockets are wired)
 export const subscriptions = {
-  subscribeToHealthRecords(userId: string, callback: (payload: any) => void) {
-    return supabase
-      .channel('health_records_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'health_records',
-          filter: `user_id=eq.${userId}`
-        },
-        callback
-      )
-      .subscribe()
+  subscribeToHealthRecords(_userId: string, _callback: (payload: unknown) => void) {
+    console.warn('Real-time health record subscriptions are not yet implemented.')
+    return {
+      unsubscribe() {
+        /* noop */
+      }
+    }
   },
 
-  subscribeToOrders(userId: string, callback: (payload: any) => void) {
-    return supabase
-      .channel('orders_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders',
-          filter: `user_id=eq.${userId}`
-        },
-        callback
-      )
-      .subscribe()
+  subscribeToOrders(_userId: string, _callback: (payload: unknown) => void) {
+    console.warn('Real-time order subscriptions are not yet implemented.')
+    return {
+      unsubscribe() {
+        /* noop */
+      }
+    }
   }
 }

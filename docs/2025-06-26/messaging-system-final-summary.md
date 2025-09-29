@@ -12,7 +12,7 @@ This document summarizes the complete implementation of a real-time messaging sy
 
 ### 2. Real-Time Messaging System
 - **Database Schema**: Complete messaging infrastructure with conversations, messages, doctors, and read status
-- **Real-Time Updates**: Live message synchronization using Supabase realtime subscriptions
+- **Real-Time Updates**: Live message synchronization using API realtime subscriptions
 - **Professional UI**: Clean, modern messaging interface with conversation lists and message threads
 - **Message Composer**: Rich text input with send functionality and real-time feedback
 
@@ -89,7 +89,7 @@ pages/
 ### Testing Utilities
 - **MessagingTestUtils**: Development component for testing different user perspectives
 - **Test Data Scripts**: SQL scripts for populating sample conversations and messages
-- **Database Connection Testing**: Built-in tools for verifying Supabase connectivity
+- **Database Connection Testing**: Built-in tools for verifying API connectivity
 
 ### Code Quality
 - **TypeScript**: Full type safety across all components and services
@@ -115,7 +115,6 @@ components/messaging/index.ts
 components/dev/MessagingTestUtils.tsx
 services/messaging.ts
 hooks/useMessaging.ts
-supabase/messaging_schema.sql
 scripts/test-messaging-data.sql
 docs/2025-06-26/ (comprehensive documentation)
 ```
@@ -124,25 +123,20 @@ docs/2025-06-26/ (comprehensive documentation)
 ```
 App.tsx - Added routing for treatments and messages, test utils
 pages/HealthPage.tsx - Enhanced treatment cards, real messaging data
-lib/supabase.ts - Updated types for messaging tables
+lib/apiClient.ts - Configured API client for messaging endpoints
 types.ts - Added messaging and treatment type definitions
 ```
 
 ## Setup Instructions
 
-### 1. Database Setup
-```sql
--- Run the messaging schema
-\i supabase/messaging_schema.sql
-
--- Optionally add test data
-\i scripts/test-messaging-data.sql
-```
+### 1. Service Setup
+- Ensure messaging endpoints are deployed in the backend service.
+- Optionally seed development data with `scripts/test-messaging-data.sql`.
 
 ### 2. Environment Configuration
-Ensure your Supabase configuration in `lib/supabase.ts` includes:
-- Correct project URL and anon key
-- Real-time subscriptions enabled for messaging tables
+Ensure your API configuration in `lib/apiClient.ts` includes:
+- Correct API base URL and optional bootstrap token
+- Plans for WebSocket or Server-Sent Events support if real-time messaging is required
 
 ### 3. Development Testing
 - Start the development server: `npm run dev`
