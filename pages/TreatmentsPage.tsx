@@ -1,16 +1,16 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Header from '../components/layout/Header';
-import { 
-  TreatmentList, 
-  TreatmentDetail, 
-  TreatmentFilter, 
-  TreatmentSearch 
+import {
+  TreatmentList,
+  TreatmentDetail,
+  TreatmentFilter,
+  TreatmentSearch
 } from '../components/treatments';
 import { useProfile } from '../hooks/useProfile';
-import { TREATMENT_CATEGORIES_DATA } from '../constants';
 import { TreatmentWithCategory } from '../types';
 import { ToastContext } from '../App';
+import { useTreatments } from '../hooks/useTreatments';
 
 const TreatmentsPage: React.FC = () => {
   const { profile, isLoggedIn } = useProfile();
@@ -23,35 +23,47 @@ const TreatmentsPage: React.FC = () => {
   const treatmentFromUrl = searchParams.get('treatment');
   
   // State management
-  const [selectedTreatment, setSelectedTreatment] = useState<TreatmentWithCategory | null>(null);
+  const {
+    categories,
+    treatments,
+    loading: treatmentsLoading,
+    error: treatmentsError,
+    fetchDetail,
+    detailById,
+    detailLoading,
+    detailErrors,
+  } = useTreatments();
+
+  const [selectedTreatmentId, setSelectedTreatmentId] = useState<string | null>(treatmentFromUrl);
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryFromUrl || 'all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<'name' | 'category' | 'popular'>('popular');
 
-  // Flatten all treatments with category information
-  const allTreatments: TreatmentWithCategory[] = TREATMENT_CATEGORIES_DATA.flatMap(category =>
-    category.treatments.map(treatment => ({
-      ...treatment,
-      category: category.title,
-      categoryColor: category.themeColorClass
-    }))
-  );
+  const selectedTreatment = selectedTreatmentId
+    ? treatments.find(treatment => treatment.id === selectedTreatmentId) ?? null
+    : null;
 
   // Update category and treatment when URL changes
   useEffect(() => {
     if (categoryFromUrl) {
       setSelectedCategory(categoryFromUrl);
     }
+  }, [categoryFromUrl]);
+
+  useEffect(() => {
     if (treatmentFromUrl) {
-      const treatment = allTreatments.find(t => t.id === treatmentFromUrl);
-      if (treatment) {
-        setSelectedTreatment(treatment);
-      }
+      setSelectedTreatmentId(treatmentFromUrl);
     }
-  }, [categoryFromUrl, treatmentFromUrl, allTreatments]);
+  }, [treatmentFromUrl]);
+
+  useEffect(() => {
+    if (selectedTreatmentId) {
+      void fetchDetail(selectedTreatmentId);
+    }
+  }, [selectedTreatmentId, fetchDetail]);
 
   // Filter and sort treatments
-  const filteredTreatments = allTreatments
+  const filteredTreatments = treatments
     .filter(treatment => {
       const matchesCategory = selectedCategory === 'all' || treatment.category === selectedCategory;
       const matchesSearch = treatment.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -75,11 +87,11 @@ const TreatmentsPage: React.FC = () => {
     });
 
   const handleTreatmentSelect = (treatment: TreatmentWithCategory) => {
-    setSelectedTreatment(treatment);
+    setSelectedTreatmentId(treatment.id);
   };
 
   const handleBackToList = () => {
-    setSelectedTreatment(null);
+    setSelectedTreatmentId(null);
   };
 
   const handleStartTreatment = (treatment: TreatmentWithCategory) => {
@@ -103,10 +115,14 @@ const TreatmentsPage: React.FC = () => {
   };
 
   // Get categories for filter
-  const categories = [
+  const filterCategories = [
     { id: 'all', name: 'All Treatments' },
-    ...TREATMENT_CATEGORIES_DATA.map(cat => ({ id: cat.title, name: cat.title }))
+    ...categories.map(cat => ({ id: cat.title, name: cat.title }))
   ];
+
+  const selectedTreatmentDetail = selectedTreatment ? detailById[selectedTreatment.id] : null;
+  const selectedTreatmentDetailLoading = selectedTreatment ? detailLoading[selectedTreatment.id] : false;
+  const selectedTreatmentDetailError = selectedTreatment ? detailErrors[selectedTreatment.id] : undefined;
 
   return (
     <div className="flex flex-col flex-grow bg-gray-50">
@@ -124,6 +140,9 @@ const TreatmentsPage: React.FC = () => {
             onStartTreatment={handleStartTreatment}
             onAddToCart={handleAddToCart}
             userProfile={profile}
+            detail={selectedTreatmentDetail}
+            isLoading={selectedTreatmentDetailLoading}
+            errorMessage={selectedTreatmentDetailError}
           />
         ) : (
           <>
@@ -136,7 +155,7 @@ const TreatmentsPage: React.FC = () => {
               />
               
               <TreatmentFilter
-                categories={categories}
+                categories={filterCategories}
                 selectedCategory={selectedCategory}
                 onCategoryChange={setSelectedCategory}
                 sortBy={sortBy}
@@ -144,44 +163,60 @@ const TreatmentsPage: React.FC = () => {
               />
             </div>
 
-            {/* Results Summary */}
-            <div className="mb-4">
-              <p className="text-sm text-gray-600">
-                {filteredTreatments.length} treatment{filteredTreatments.length !== 1 ? 's' : ''} found
-                {searchQuery && ` for "${searchQuery}"`}
-                {selectedCategory !== 'all' && ` in ${selectedCategory}`}
-              </p>
-            </div>
-
-            {/* Treatment List */}
-            <TreatmentList
-              treatments={filteredTreatments}
-              onTreatmentSelect={handleTreatmentSelect}
-              searchQuery={searchQuery}
-            />
-
-            {/* Empty State */}
-            {filteredTreatments.length === 0 && (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No treatments found</h3>
-                <p className="text-gray-600 mb-4">
-                  Try adjusting your search or filter criteria
-                </p>
-                <button
-                  onClick={() => {
-                    setSearchQuery('');
-                    setSelectedCategory('all');
-                  }}
-                  className="text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  Clear filters
-                </button>
+            {treatmentsError && (
+              <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                {treatmentsError}
               </div>
+            )}
+
+            {treatmentsLoading ? (
+              <div className="space-y-4">
+                {[...Array(4)].map((_, index) => (
+                  <div key={index} className="h-32 animate-pulse rounded-2xl bg-gray-100" />
+                ))}
+              </div>
+            ) : (
+              <>
+                {/* Results Summary */}
+                <div className="mb-4">
+                  <p className="text-sm text-gray-600">
+                    {filteredTreatments.length} treatment{filteredTreatments.length !== 1 ? 's' : ''} found
+                    {searchQuery && ` for "${searchQuery}"`}
+                    {selectedCategory !== 'all' && ` in ${selectedCategory}`}
+                  </p>
+                </div>
+
+                {/* Treatment List */}
+                <TreatmentList
+                  treatments={filteredTreatments}
+                  onTreatmentSelect={handleTreatmentSelect}
+                  searchQuery={searchQuery}
+                />
+
+                {/* Empty State */}
+                {filteredTreatments.length === 0 && (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 01 14 0z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No treatments found</h3>
+                    <p className="text-gray-600 mb-4">
+                      Try adjusting your search or filter criteria
+                    </p>
+                    <button
+                      onClick={() => {
+                        setSearchQuery('');
+                        setSelectedCategory('all');
+                      }}
+                      className="text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      Clear filters
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}

@@ -120,11 +120,29 @@ export interface Treatment {
   themeClass: string; // e.g. program-weight
   icon: (props: { className?: string }) => React.ReactNode;
   tag?: 'New' | 'Popular';
+  pricePerMonth?: number | null;
+  duration?: string | null;
+  frequency?: string | null;
+  isAvailable?: boolean | null;
 }
 
 export interface TreatmentWithCategory extends Treatment {
   category: string;
   categoryColor: string;
+}
+
+export interface TreatmentDetailContent {
+  id: string;
+  overview?: string | null;
+  howItWorks?: string[] | null;
+  benefits?: string[] | null;
+  sideEffects?: string[] | null;
+  dosage?: string | null;
+  frequency?: string | null;
+  pricePerMonth?: number | null;
+  duration?: string | null;
+  contraindications?: string[] | null;
+  isAvailable?: boolean | null;
 }
 
 // Shop Page Specific Types

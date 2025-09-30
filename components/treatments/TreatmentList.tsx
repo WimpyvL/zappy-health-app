@@ -12,7 +12,23 @@ const TreatmentCard: React.FC<{
   onSelect: (treatment: TreatmentWithCategory) => void;
   searchQuery?: string;
 }> = ({ treatment, onSelect, searchQuery }) => {
-  const { name, description, themeClass, icon: TreatmentIcon, tag, category, categoryColor } = treatment;
+  const {
+    name,
+    description,
+    themeClass,
+    icon: TreatmentIcon,
+    tag,
+    category,
+    categoryColor,
+    pricePerMonth,
+    duration,
+    isAvailable,
+  } = treatment;
+
+  const priceLabel = typeof pricePerMonth === 'number' ? `$${pricePerMonth}/mo` : 'See details';
+  const durationLabel = duration || 'Personalized plan';
+  const availabilityLabel = isAvailable === false ? 'Waitlist' : 'Available';
+  const availabilityClass = isAvailable === false ? 'text-orange-600' : 'text-green-600';
 
   // Highlight search terms
   const highlightText = (text: string, query?: string) => {
@@ -33,8 +49,8 @@ const TreatmentCard: React.FC<{
   };
 
   return (
-    <article 
-      className={`program-card-small ${themeClass} cursor-pointer hover:scale-105 transition-all duration-200 hover:shadow-lg`}
+    <article
+      className={`program-card-small ${themeClass} relative cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg`}
       onClick={() => onSelect(treatment)}
       tabIndex={0}
       role="button"
@@ -63,25 +79,32 @@ const TreatmentCard: React.FC<{
         <p className="text-sm text-gray-600 mb-2">
           {highlightText(description, searchQuery)}
         </p>
+        <div className="mb-3 flex items-center justify-between text-xs text-gray-500">
+          <span>{priceLabel}</span>
+          <span>{durationLabel}</span>
+        </div>
         <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${categoryColor.replace('text-', 'bg-').replace('-600', '-100')} ${categoryColor}`}>
           {category}
         </span>
       </div>
 
       <div className="flex items-center justify-center">
-        <svg 
-          className="w-5 h-5 text-gray-400" 
-          fill="none" 
-          stroke="currentColor" 
+        <svg
+          className="w-5 h-5 text-gray-400"
+          fill="none"
+          stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            strokeWidth="2" 
-            d="M9 5l7 7-7 7" 
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M9 5l7 7-7 7"
           />
         </svg>
+      </div>
+      <div className={`absolute bottom-3 left-4 text-[10px] font-medium ${availabilityClass}`}>
+        {availabilityLabel}
       </div>
     </article>
   );

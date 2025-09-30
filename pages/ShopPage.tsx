@@ -4,8 +4,9 @@ import { ShoppingCart as ShoppingCartIconLucide } from 'lucide-react';
 import ShoppingCart from '../components/cart/ShoppingCart';
 import Header from '../components/layout/Header';
 import { ProductDataForShop, ShopCategoryMainCardData, ShopPageCategorySectionData, CartItem } from '../types';
-import { SHOP_PAGE_CATEGORY_SECTIONS_DATA, ICON_MAP, FEATURED_PRODUCTS_DATA } from '../constants';
+import { ICON_MAP } from '../constants';
 import { useCart } from '../contexts/CartContext'; // Import the actual useCart hook
+import { useShopCatalog } from '../hooks/useShopCatalog';
 
 // --- Sub-Components for ShopPage ---
 
@@ -94,6 +95,7 @@ const ShopPage: React.FC = () => {
   const { addItemToCart, getCartItemCount } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const currentCartItemCount = getCartItemCount();
+  const { featuredProducts, sections, loading, error } = useShopCatalog();
 
   const handleProductTeaserAddToCart = (product: ProductDataForShop) => {
     const cartItem: CartItem = {
@@ -115,7 +117,7 @@ const ShopPage: React.FC = () => {
   return (
     <div className="flex flex-col flex-grow">
       <Header title="Shop" subtitle="Find the right treatment for you" />
-      
+
       <main className="px-4 sm:px-6 pt-5 pb-36 flex-grow" role="main">
         <div className="flex justify-end items-center mb-6">
             <button
@@ -133,29 +135,57 @@ const ShopPage: React.FC = () => {
         </div>
 
         <div className="space-y-10">
-          {/* New "Top Picks" Section */}
+          {error && (
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
           <section className="mb-10 md:mb-12" aria-labelledby="top-picks-title">
             <h2 id="top-picks-title" className="text-3xl font-semibold text-gray-800 dark:text-white mb-4">Top Picks</h2>
-            <div className="flex overflow-x-auto space-x-4 md:space-x-6 py-4 scrollbar-hide">
-              {FEATURED_PRODUCTS_DATA.map((product) => (
-                <ProductTeaserCard
-                  key={product.id}
-                  teaserData={product}
-                  themeClass="theme-peptides" // Green theme for "Top Picks"
-                  onAddToCart={handleProductTeaserAddToCart}
-                />
+            {loading && featuredProducts.length === 0 ? (
+              <div className="flex space-x-4 py-4">
+                {[...Array(3)].map((_, index) => (
+                  <div key={index} className="h-[360px] w-64 animate-pulse rounded-2xl bg-gray-100" />
+                ))}
+              </div>
+            ) : featuredProducts.length > 0 ? (
+              <div className="flex overflow-x-auto space-x-4 md:space-x-6 py-4 scrollbar-hide">
+                {featuredProducts.map(product => (
+                  <ProductTeaserCard
+                    key={product.id}
+                    teaserData={product}
+                    themeClass={product.themeClass || 'theme-peptides'}
+                    onAddToCart={handleProductTeaserAddToCart}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-600">We&apos;re curating featured products. Check back soon.</p>
+            )}
+          </section>
+
+          {loading && sections.length === 0 ? (
+            <div className="space-y-6">
+              {[...Array(2)].map((_, index) => (
+                <div key={index} className="h-[360px] w-full animate-pulse rounded-2xl bg-gray-100" />
               ))}
             </div>
-          </section>
-          
-          {SHOP_PAGE_CATEGORY_SECTIONS_DATA.map((section) => (
-            <CategorySectionDisplay 
-              key={section.id} 
-              section={section} 
-              onAddToCart={handleProductTeaserAddToCart}
-              onCategoryClick={handleCategoryCardClick}
-            />
-          ))}
+          ) : sections.length > 0 ? (
+            sections.map(section => (
+              <CategorySectionDisplay
+                key={section.id}
+                section={section}
+                onAddToCart={handleProductTeaserAddToCart}
+                onCategoryClick={handleCategoryCardClick}
+              />
+            ))
+          ) : (
+            <div className="rounded-2xl border border-gray-200 p-6 text-center text-sm text-gray-600">
+              <p className="font-medium text-gray-700">Our catalog is coming soon</p>
+              <p className="mt-1">We&apos;re finalizing product inventory. Please check back shortly.</p>
+            </div>
+          )}
         </div>
       </main>
       <ShoppingCart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
