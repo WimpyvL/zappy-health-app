@@ -1,5 +1,5 @@
-import { supabase } from '../lib/supabase';
 import { User } from '@supabase/supabase-js';
+import { apiFetch } from './apiClient';
 
 // Types for our data structures
 export interface PatientProfile {
@@ -98,42 +98,7 @@ class DatabaseService {
    */
   async getHomePageData(user: User): Promise<HomePageData | null> {
     try {
-      // Get patient profile first
-      const profile = await this.getPatientProfile(user.id);
-      if (!profile) {
-        throw new Error('Patient profile not found');
-      }
-
-      // Fetch all data in parallel for better performance
-      const [
-        activeOrders,
-        nextAppointment,
-        recentCheckIns,
-        pendingTasks,
-        recommendedResources,
-        allPrograms
-      ] = await Promise.all([
-        this.getActiveOrders(profile.id),
-        this.getNextAppointment(profile.id),
-        this.getRecentCheckIns(profile.id, 5),
-        this.getPendingTasks(profile.id),
-        this.getRecommendedResources(5),
-        this.getPatientPrograms(profile.id)
-      ]);
-
-      // Calculate weekly progress
-      const weeklyProgress = this.calculateWeeklyProgress(recentCheckIns, profile);
-
-      return {
-        profile,
-        activeOrders,
-        nextAppointment,
-        recentCheckIns,
-        pendingTasks,
-        recommendedResources,
-        weeklyProgress,
-        allPrograms
-      };
+      return await apiFetch<HomePageData>('/home');
     } catch (error) {
       console.error('Error fetching homepage data:', error);
       return null;
@@ -141,162 +106,14 @@ class DatabaseService {
   }
 
   /**
-   * Get patient profile by user ID
-   */
-  private async getPatientProfile(userId: string): Promise<PatientProfile | null> {
-    const { data, error } = await supabase
-      .from('patients')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-
-    if (error) {
-      console.error('Error fetching patient profile:', error);
-      return null;
-    }
-    return data;
-  }
-
-  /**
-   * Get active medication orders
-   */
-  private async getActiveOrders(patientId: string): Promise<PatientOrder[]> {
-    const { data, error } = await supabase
-      .from('patient_orders')
-      .select(`
-        *,
-        products (
-          name,
-          category
-        )
-      `)
-      .eq('patient_id', patientId)
-      .eq('status', 'active')
-      .order('next_refill_date', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching active orders:', error);
-      return [];
-    }
-    return data || [];
-  }
-
-  /**
-   * Get next upcoming appointment
-   */
-  private async getNextAppointment(patientId: string): Promise<Appointment | null> {
-    const today = new Date().toISOString().split('T')[0];
-    
-    const { data, error } = await supabase
-      .from('appointments')
-      .select('*')
-      .eq('patient_id', patientId)
-      .gte('appointment_date', today)
-      .eq('status', 'scheduled')
-      .order('appointment_date', { ascending: true })
-      .limit(1)
-      .single();
-
-    if (error) {
-      console.error('Error fetching next appointment:', error);
-      return null;
-    }
-    return data;
-  }
-
-  /**
-   * Get recent check-ins for progress tracking
-   */
-  private async getRecentCheckIns(patientId: string, limit: number = 5): Promise<CheckIn[]> {
-    const { data, error } = await supabase
-      .from('check_ins')
-      .select('*')
-      .eq('patient_id', patientId)
-      .order('check_in_date', { ascending: false })
-      .limit(limit);
-
-    if (error) {
-      console.error('Error fetching recent check-ins:', error);
-      return [];
-    }
-    return data || [];
-  }
-
-  /**
-   * Get pending tasks for the patient
-   */
-  private async getPendingTasks(patientId: string): Promise<Task[]> {
-    const { data, error } = await supabase
-      .from('pb_tasks')
-      .select('*')
-      .eq('patient_id', patientId)
-      .eq('status', 'pending')
-      .order('due_date', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching pending tasks:', error);
-      return [];
-    }
-    return data || [];
-  }
-
-  /**
-   * Get recommended educational resources
-   */
-  private async getRecommendedResources(limit: number = 5): Promise<EducationalResource[]> {
-    const { data, error } = await supabase
-      .from('educational_resources')
-      .select('*')
-      .eq('is_featured', true)
-      .order('created_at', { ascending: false })
-      .limit(limit);
-
-    if (error) {
-      console.error('Error fetching educational resources:', error);
-      return [];
-    }
-    return data || [];
-  }
-
-  /**
-   * Calculate weekly progress metrics
-   */
-  private calculateWeeklyProgress(checkIns: CheckIn[], profile: PatientProfile) {
-    const currentWeight = checkIns[0]?.weight || profile.weight;
-    const previousWeight = checkIns[1]?.weight || profile.weight;
-    const weightChange = currentWeight - previousWeight;
-    
-    const targetWeight = profile.target_weight || profile.weight - 50; // Default goal
-    const totalWeightToLose = profile.weight - targetWeight;
-    const weightLost = profile.weight - currentWeight;
-    const progressPercentage = Math.max(0, Math.min(100, (weightLost / totalWeightToLose) * 100));
-    const remainingToGoal = Math.max(0, currentWeight - targetWeight);
-
-    return {
-      currentWeight,
-      weightChange,
-      progressPercentage: Math.round(progressPercentage),
-      remainingToGoal
-    };
-  }
-
-  /**
    * Log a new weight entry
    */
   async logWeight(patientId: string, weight: number): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('check_ins')
-        .insert({
-          patient_id: patientId,
-          weight,
-          check_in_date: new Date().toISOString().split('T')[0]
-        });
-
-      if (error) {
-        console.error('Error logging weight:', error);
-        return false;
-      }
+      await apiFetch('/home/check-ins', {
+        method: 'POST',
+        body: JSON.stringify({ weight })
+      });
       return true;
     } catch (error) {
       console.error('Error logging weight:', error);
@@ -309,18 +126,9 @@ class DatabaseService {
    */
   async completeTask(taskId: string): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('pb_tasks')
-        .update({
-          status: 'completed',
-          completed_at: new Date().toISOString()
-        })
-        .eq('id', taskId);
-
-      if (error) {
-        console.error('Error completing task:', error);
-        return false;
-      }
+      await apiFetch(`/home/tasks/${taskId}/complete`, {
+        method: 'POST'
+      });
       return true;
     } catch (error) {
       console.error('Error completing task:', error);
@@ -332,23 +140,12 @@ class DatabaseService {
    * Get all programs/treatments for a patient
    */
   async getPatientPrograms(patientId: string) {
-    const { data, error } = await supabase
-      .from('patient_orders')
-      .select(`
-        *,
-        products (
-          name,
-          category,
-          product_doses (*)
-        )
-      `)
-      .eq('patient_id', patientId);
-
-    if (error) {
+    try {
+      return await apiFetch<PatientOrder[]>('/home/programs');
+    } catch (error) {
       console.error('Error fetching patient programs:', error);
       return [];
     }
-    return data || [];
   }
 
   /**
@@ -356,53 +153,9 @@ class DatabaseService {
    */
   async getProgramSpecificData(patientId: string, programCategory: string) {
     try {
-      // Get orders for this specific program category
-      const { data: programOrders, error: ordersError } = await supabase
-        .from('patient_orders')
-        .select(`
-          *,
-          products (
-            name,
-            category,
-            product_doses (*)
-          )
-        `)
-        .eq('patient_id', patientId)
-        .eq('products.category', programCategory);
-
-      if (ordersError) {
-        console.error('Error fetching program orders:', ordersError);
-      }
-
-      // Get program-specific tasks
-      const { data: programTasks, error: tasksError } = await supabase
-        .from('pb_tasks')
-        .select('*')
-        .eq('patient_id', patientId)
-        .eq('task_type', programCategory)
-        .eq('status', 'pending');
-
-      if (tasksError) {
-        console.error('Error fetching program tasks:', tasksError);
-      }
-
-      // Get program-specific educational resources
-      const { data: programResources, error: resourcesError } = await supabase
-        .from('educational_resources')
-        .select('*')
-        .eq('category', programCategory)
-        .eq('is_featured', true)
-        .limit(3);
-
-      if (resourcesError) {
-        console.error('Error fetching program resources:', resourcesError);
-      }
-
-      return {
-        orders: programOrders || [],
-        tasks: programTasks || [],
-        resources: programResources || []
-      };
+      return await apiFetch<{ orders: PatientOrder[]; tasks: Task[]; resources: EducationalResource[] }>(
+        `/home/programs/${programCategory}`
+      );
     } catch (error) {
       console.error('Error fetching program specific data:', error);
       return {
@@ -426,28 +179,10 @@ class DatabaseService {
     height?: number;
   }): Promise<PatientProfile | null> {
     try {
-      const { data, error } = await supabase
-        .from('patients')
-        .insert({
-          user_id: userData.user_id,
-          first_name: userData.first_name,
-          last_name: userData.last_name || '',
-          email: userData.email,
-          date_of_birth: userData.date_of_birth || null,
-          weight: userData.weight || null,
-          height: userData.height || null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error creating patient:', error);
-        return null;
-      }
-
-      return data;
+      return await apiFetch<PatientProfile>('/patients', {
+        method: 'POST',
+        body: JSON.stringify(userData)
+      });
     } catch (error) {
       console.error('Error creating patient:', error);
       return null;
@@ -459,18 +194,7 @@ class DatabaseService {
    */
   async getPatientByUserId(userId: string): Promise<PatientProfile | null> {
     try {
-      const { data, error } = await supabase
-        .from('patients')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching patient:', error);
-        return null;
-      }
-
-      return data;
+      return await apiFetch<PatientProfile>(`/patients/by-user/${userId}`);
     } catch (error) {
       console.error('Error fetching patient:', error);
       return null;
@@ -482,19 +206,10 @@ class DatabaseService {
    */
   async updatePatient(userId: string, updates: Partial<PatientProfile>): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('patients')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', userId);
-
-      if (error) {
-        console.error('Error updating patient:', error);
-        return false;
-      }
-
+      await apiFetch(`/patients/by-user/${userId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates)
+      });
       return true;
     } catch (error) {
       console.error('Error updating patient:', error);

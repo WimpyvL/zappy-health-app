@@ -51,6 +51,37 @@ Before creating documentation, read: [AI Builder Instructions](docs/AI_BUILDER_I
 ## Architecture
 
 - **Frontend**: React + TypeScript + Vite
-- **Backend**: Supabase (PostgreSQL + Auth + Real-time)
+- **Backend**: Supabase (PostgreSQL + Auth + Real-time) with an Express API proxy
 - **Styling**: Tailwind CSS
 - **State Management**: React Context + Custom Hooks
+
+## Backend API Server
+
+The project now includes a Node.js API located in `server/` that proxies all Supabase database access. The frontend communicates with this API instead of calling Supabase directly.
+
+### Environment Variables
+
+Create a `.env` file at the repository root with the following variables to run the backend:
+
+```
+SUPABASE_URL=<your-supabase-project-url>
+SUPABASE_SERVICE_ROLE_KEY=<your-supabase-service-role-key>
+PORT=4000                    # optional, defaults to 4000
+FRONTEND_URL=http://localhost:5173  # allowed CORS origin
+```
+
+Update your frontend `.env` file to point to the API server:
+
+```
+VITE_API_BASE_URL=http://localhost:4000
+```
+
+### Install and Run
+
+```
+cd server
+npm install
+npm run dev
+```
+
+The API exposes REST endpoints for authentication, profiles, patients, health records, orders, and aggregated homepage data. All endpoints require a valid Supabase access token in the `Authorization: Bearer <token>` header.
