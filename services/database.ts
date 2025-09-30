@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase'
 import type { Database } from '../lib/supabase'
+import { apiFetch } from './apiClient'
 
 type Tables = Database['public']['Tables']
 type Profile = Tables['profiles']['Row']
@@ -12,211 +13,171 @@ type PatientUpdate = Tables['patients']['Update']
 // Profile Services
 export const profileService = {
   async getProfile(userId: string): Promise<Profile | null> {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-
-    if (error) {
+    try {
+      return await apiFetch<Profile>(`/profiles/${userId}`)
+    } catch (error) {
       console.error('Error fetching profile:', error)
       return null
     }
-
-    return data
   },
 
   async updateProfile(userId: string, updates: Partial<Profile>): Promise<boolean> {
-    const { error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', userId)
-
-    if (error) {
+    try {
+      await apiFetch(`/profiles/${userId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates)
+      })
+      return true
+    } catch (error) {
       console.error('Error updating profile:', error)
       return false
     }
-
-    return true
   },
 
   async createProfile(profile: Tables['profiles']['Insert']): Promise<boolean> {
-    const { error } = await supabase
-      .from('profiles')
-      .insert(profile)
-
-    if (error) {
+    try {
+      await apiFetch('/profiles', {
+        method: 'POST',
+        body: JSON.stringify(profile)
+      })
+      return true
+    } catch (error) {
       console.error('Error creating profile:', error)
       return false
     }
-
-    return true
   }
 }
 
 // Health Records Services
 export const healthRecordsService = {
   async getUserHealthRecords(userId: string): Promise<HealthRecord[]> {
-    const { data, error } = await supabase
-      .from('health_records')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-
-    if (error) {
+    try {
+      return await apiFetch<HealthRecord[]>(`/health-records?userId=${userId}`)
+    } catch (error) {
       console.error('Error fetching health records:', error)
       return []
     }
-
-    return data || []
   },
 
   async createHealthRecord(record: Tables['health_records']['Insert']): Promise<boolean> {
-    const { error } = await supabase
-      .from('health_records')
-      .insert(record)
-
-    if (error) {
+    try {
+      await apiFetch('/health-records', {
+        method: 'POST',
+        body: JSON.stringify(record)
+      })
+      return true
+    } catch (error) {
       console.error('Error creating health record:', error)
       return false
     }
-
-    return true
   },
 
   async updateHealthRecord(id: string, updates: Tables['health_records']['Update']): Promise<boolean> {
-    const { error } = await supabase
-      .from('health_records')
-      .update(updates)
-      .eq('id', id)
-
-    if (error) {
+    try {
+      await apiFetch(`/health-records/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates)
+      })
+      return true
+    } catch (error) {
       console.error('Error updating health record:', error)
       return false
     }
-
-    return true
   },
 
   async deleteHealthRecord(id: string): Promise<boolean> {
-    const { error } = await supabase
-      .from('health_records')
-      .delete()
-      .eq('id', id)
-
-    if (error) {
+    try {
+      await apiFetch(`/health-records/${id}`, { method: 'DELETE' })
+      return true
+    } catch (error) {
       console.error('Error deleting health record:', error)
       return false
     }
-
-    return true
   }
 }
 
 // Orders Services
 export const ordersService = {
   async getUserOrders(userId: string): Promise<Order[]> {
-    const { data, error } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-
-    if (error) {
+    try {
+      return await apiFetch<Order[]>(`/orders?userId=${userId}`)
+    } catch (error) {
       console.error('Error fetching orders:', error)
       return []
     }
-
-    return data || []
   },
 
   async createOrder(order: Tables['orders']['Insert']): Promise<string | null> {
-    const { data, error } = await supabase
-      .from('orders')
-      .insert(order)
-      .select('id')
-      .single()
-
-    if (error) {
+    try {
+      const data = await apiFetch<{ id: string }>('/orders', {
+        method: 'POST',
+        body: JSON.stringify(order)
+      })
+      return data?.id ?? null
+    } catch (error) {
       console.error('Error creating order:', error)
       return null
     }
-
-    return data?.id || null
   },
 
   async updateOrderStatus(orderId: string, status: string): Promise<boolean> {
-    const { error } = await supabase
-      .from('orders')
-      .update({ status, updated_at: new Date().toISOString() })
-      .eq('id', orderId)
-
-    if (error) {
+    try {
+      await apiFetch(`/orders/${orderId}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({ status })
+      })
+      return true
+    } catch (error) {
       console.error('Error updating order status:', error)
       return false
     }
-
-    return true
   },
 
   async getOrder(orderId: string): Promise<Order | null> {
-    const { data, error } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('id', orderId)
-      .single()
-
-    if (error) {
+    try {
+      return await apiFetch<Order>(`/orders/${orderId}`)
+    } catch (error) {
       console.error('Error fetching order:', error)
       return null
     }
-
-    return data
   }
 }
 
 // Patient Services
 export const patientService = {
   async getPatient(userId: string): Promise<Patient | null> {
-    const { data, error } = await supabase
-      .from('patients')
-      .select('*')
-      .eq('user_id', userId)
-      .single()
-
-    if (error) {
+    try {
+      return await apiFetch<Patient>(`/patients/by-user/${userId}`)
+    } catch (error) {
       console.error('Error fetching patient:', error)
       return null
     }
-
-    return data
   },
 
   async createPatient(patient: PatientInsert): Promise<boolean> {
-    const { error } = await supabase
-      .from('patients')
-      .insert(patient)
-
-    if (error) {
+    try {
+      await apiFetch('/patients', {
+        method: 'POST',
+        body: JSON.stringify(patient)
+      })
+      return true
+    } catch (error) {
       console.error('Error creating patient:', error)
       return false
     }
-
-    return true
   },
 
   async updatePatient(userId: string, updates: PatientUpdate): Promise<boolean> {
-    const { error } = await supabase
-      .from('patients')
-      .update(updates)
-      .eq('user_id', userId)
-
-    if (error) {
+    try {
+      await apiFetch(`/patients/by-user/${userId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates)
+      })
+      return true
+    } catch (error) {
       console.error('Error updating patient:', error)
       return false
     }
-
-    return true
   }
 }
 
