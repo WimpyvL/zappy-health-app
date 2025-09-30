@@ -75,7 +75,7 @@ export const AuthButton: React.FC = () => {
       >
         <User className="w-4 h-4 text-blue-600" />
         <span className="text-sm font-medium text-blue-700">
-          {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
+          {user.full_name || user.email?.split('@')[0] || 'User'}
         </span>
         <svg
           className={`ml-1 h-4 w-4 transition-transform duration-200 ${showUserMenu ? 'rotate-180' : 'rotate-0'}`}

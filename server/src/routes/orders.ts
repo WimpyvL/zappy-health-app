@@ -1,103 +1,100 @@
-import { Router } from 'express'
-import { supabaseAdmin } from '../lib/supabase'
-import { authenticate } from '../middleware/auth'
-import { OrderInsert } from '../types/database'
+import { Router } from 'express';
+import { authenticate } from '../middleware/auth';
+import { apiFetch, isApiError } from '../lib/apiClient';
+import { OrderInsert } from '../types/database';
 
-const router = Router()
+const router = Router();
 
-router.use(authenticate)
+router.use(authenticate);
 
 router.get('/', async (req, res) => {
-  const userId = (req.query.userId as string) ?? req.authUser?.id
+  const userId = (req.query.userId as string) ?? req.authUser?.id;
   if (!userId) {
-    return res.status(400).json({ message: 'userId is required' })
+    return res.status(400).json({ message: 'userId is required' });
   }
 
   try {
-    const { data, error } = await supabaseAdmin
-      .from('orders')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
+    const orders = await apiFetch(`/orders?userId=${encodeURIComponent(userId)}`, {
+      token: req.accessToken,
+    });
 
-    if (error) {
-      return res.status(400).json({ message: error.message })
+    return res.json(orders ?? []);
+  } catch (error) {
+    if (isApiError(error)) {
+      return res.status(error.status).json({ message: error.message, details: error.body });
     }
 
-    return res.json(data ?? [])
-  } catch (error) {
-    console.error('Failed to fetch orders:', error)
-    return res.status(500).json({ message: 'Failed to fetch orders' })
+    console.error('Failed to fetch orders:', error);
+    return res.status(500).json({ message: 'Failed to fetch orders' });
   }
-})
+});
 
 router.get('/:id', async (req, res) => {
-  const { id } = req.params
+  const { id } = req.params;
   try {
-    const { data, error } = await supabaseAdmin
-      .from('orders')
-      .select('*')
-      .eq('id', id)
-      .single()
+    const order = await apiFetch(`/orders/${id}`, {
+      token: req.accessToken,
+    });
 
-    if (error) {
-      return res.status(404).json({ message: error.message })
+    return res.json(order);
+  } catch (error) {
+    if (isApiError(error)) {
+      return res.status(error.status).json({ message: error.message, details: error.body });
     }
 
-    return res.json(data)
-  } catch (error) {
-    console.error('Failed to fetch order:', error)
-    return res.status(500).json({ message: 'Failed to fetch order' })
+    console.error('Failed to fetch order:', error);
+    return res.status(500).json({ message: 'Failed to fetch order' });
   }
-})
+});
 
 router.post('/', async (req, res) => {
-  const payload = req.body as OrderInsert
+  const payload = req.body as OrderInsert;
   if (!payload?.user_id) {
-    return res.status(400).json({ message: 'user_id is required' })
+    return res.status(400).json({ message: 'user_id is required' });
   }
 
   try {
-    const { data, error } = await supabaseAdmin
-      .from('orders')
-      .insert(payload)
-      .select('id')
-      .single()
+    const order = await apiFetch('/orders', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      token: req.accessToken,
+    });
 
-    if (error) {
-      return res.status(400).json({ message: error.message })
+    return res.status(201).json(order);
+  } catch (error) {
+    if (isApiError(error)) {
+      return res.status(error.status).json({ message: error.message, details: error.body });
     }
 
-    return res.status(201).json(data)
-  } catch (error) {
-    console.error('Failed to create order:', error)
-    return res.status(500).json({ message: 'Failed to create order' })
+    console.error('Failed to create order:', error);
+    return res.status(500).json({ message: 'Failed to create order' });
   }
-})
+});
 
 router.put('/:id/status', async (req, res) => {
-  const { id } = req.params
-  const { status } = req.body as { status?: string }
+  const { id } = req.params;
+  const { status } = req.body as { status?: string };
 
   if (!status) {
-    return res.status(400).json({ message: 'status is required' })
+    return res.status(400).json({ message: 'status is required' });
   }
 
   try {
-    const { error } = await supabaseAdmin
-      .from('orders')
-      .update({ status, updated_at: new Date().toISOString() })
-      .eq('id', id)
+    await apiFetch(`/orders/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+      token: req.accessToken,
+    });
 
-    if (error) {
-      return res.status(400).json({ message: error.message })
+    return res.status(204).send();
+  } catch (error) {
+    if (isApiError(error)) {
+      return res.status(error.status).json({ message: error.message, details: error.body });
     }
 
-    return res.status(204).send()
-  } catch (error) {
-    console.error('Failed to update order status:', error)
-    return res.status(500).json({ message: 'Failed to update order status' })
+    console.error('Failed to update order status:', error);
+    return res.status(500).json({ message: 'Failed to update order status' });
   }
-})
+});
 
-export default router
+export default router;

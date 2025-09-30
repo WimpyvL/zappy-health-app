@@ -77,12 +77,13 @@ export const useMessaging = (): UseMessagingReturn => {
         user.id,
         content
       );
-      // Messages will be updated via real-time subscription
+      await loadMessages(currentConversation.id);
+      await loadConversations();
     } catch (err) {
       console.error('Error sending message:', err);
       setError('Failed to send message');
     }
-  }, [user?.id, currentConversation]);
+  }, [user?.id, currentConversation, loadMessages, loadConversations]);
 
   // Create a new conversation
   const createConversation = useCallback(async (doctorId: string, subject?: string) => {
