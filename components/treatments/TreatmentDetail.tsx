@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { TreatmentWithCategory } from '../../types';
-import type { Database } from '../../lib/supabase';
-
-type Profile = Database['public']['Tables']['profiles']['Row'];
+import type { Profile } from '../../types/api';
 
 interface TreatmentDetailProps {
   treatment: TreatmentWithCategory;

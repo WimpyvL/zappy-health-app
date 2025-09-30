@@ -17,7 +17,7 @@ export const useHomePageData = () => {
     try {
       setLoading(true);
       setError(null);
-      const homePageData = await databaseService.getHomePageData(user);
+      const homePageData = await databaseService.getHomePageData();
       setData(homePageData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load data');

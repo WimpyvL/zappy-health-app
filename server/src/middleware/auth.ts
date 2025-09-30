@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
-import { supabaseAdmin } from '../lib/supabase'
+import { API_BASE_URL } from '../lib/apiClient'
+import { ENV } from '../env'
 
 declare global {
   namespace Express {
@@ -21,15 +22,30 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
   }
 
   const token = authHeader.replace('Bearer ', '')
+
   try {
-    const { data, error } = await supabaseAdmin.auth.getUser(token)
-    if (error || !data?.user) {
-      return res.status(401).json({ message: 'Invalid or expired token' })
+    const response = await fetch(`${API_BASE_URL}/auth/me`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        ...(ENV.apiKey ? { 'X-API-KEY': ENV.apiKey } : {})
+      }
+    })
+
+    const body = (await response.json().catch(() => ({}))) as Record<string, unknown>
+
+    if (!response.ok) {
+      const status = response.status === 401 ? 401 : 500
+      const message = typeof body.message === 'string' ? body.message : 'Failed to validate session'
+      return res.status(status).json({ message })
     }
 
+    const authPayload = (body.user ?? body) as Record<string, unknown>
+
     req.authUser = {
-      id: data.user.id,
-      email: data.user.email ?? undefined
+      id: String(authPayload.id),
+      email: typeof authPayload.email === 'string' ? authPayload.email : undefined
     }
     req.accessToken = token
     next()

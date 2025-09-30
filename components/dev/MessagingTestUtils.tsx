@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { MessagingService } from '../../services/messaging';
 
 /**
  * Development tool for testing messaging functionality
@@ -28,39 +28,24 @@ export const MessagingTestUtils: React.FC = () => {
 
   const testDatabaseConnection = async () => {
     try {
-      const { data, error } = await supabase
-        .from('conversations')
-        .select('*')
-        .limit(1);
-      
-      if (error) {
-        console.error('Database connection test failed:', error);
-        setConnected(false);
-      } else {
-        console.log('Database connection successful:', data);
-        setConnected(true);
-      }
+      const conversations = await MessagingService.getConversations(testUserId);
+      console.log('Messaging API connection successful:', conversations.slice(0, 1));
+      setConnected(true);
     } catch (err) {
-      console.error('Database connection error:', err);
+      console.error('Messaging API connection error:', err);
       setConnected(false);
     }
   };
 
   const createTestMessage = async () => {
     try {
-      const { data, error } = await supabase
-        .from('messages')
-        .insert({
-          conversation_id: '11111111-1111-1111-1111-111111111111',
-          sender_id: testUserId,
-          content: `Test message from ${testUsers.find(u => u.id === testUserId)?.name} at ${new Date().toLocaleTimeString()}`,
-        });
-
-      if (error) {
-        console.error('Failed to create test message:', error);
-      } else {
-        console.log('Test message created:', data);
-      }
+      const testConversationId = '11111111-1111-1111-1111-111111111111';
+      const message = await MessagingService.sendMessage(
+        testConversationId,
+        testUserId,
+        `Test message from ${testUsers.find(u => u.id === testUserId)?.name ?? 'Test User'} at ${new Date().toLocaleTimeString()}`
+      );
+      console.log('Test message request sent:', message);
     } catch (err) {
       console.error('Error creating test message:', err);
     }
