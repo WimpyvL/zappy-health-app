@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Activity, Heart, Calendar, TrendingUp, Clock, AlertCircle } from 'lucide-react';
 import Header from '../components/layout/Header';
-import { RECENT_MESSAGES_DATA, TREATMENT_CATEGORIES_DATA, PencilIcon, ChevronRightIcon } from '../constants';
-import { Message, Treatment } from '../types';
+import { RECENT_MESSAGES_DATA, PencilIcon, ChevronRightIcon } from '../constants';
+import { Message } from '../types';
 import { useMessaging } from '../hooks/useMessaging';
 import { MessagingService } from '../services/messaging';
 
@@ -40,104 +41,89 @@ const MessageCard: React.FC<Message> = ({ id, doctorName, specialty, timeAgo, da
     </article>
   );
 };
+// Health Metric Card Component
+interface HealthMetricProps {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  value: string;
+  unit: string;
+  status: 'good' | 'warning' | 'alert';
+  lastUpdated: string;
+}
 
-const TreatmentCard: React.FC<Treatment> = ({ id, name, description, themeClass, icon: TreatmentIcon, tag }) => {
-  const navigate = useNavigate();
-  
-  // Get treatment details for enhanced display
-  const getTreatmentDetails = (treatmentId: string) => {
-    const defaultDetails = {
-      price: 99,
-      duration: "3-6 months",
-      frequency: "As prescribed",
-      isAvailable: true
-    };
-
-    // Customize based on treatment type
-    if (treatmentId.startsWith('wl')) {
-      return {
-        ...defaultDetails,
-        price: 149,
-        frequency: "Weekly",
-        duration: "6-12 months"
-      };
-    } else if (treatmentId.startsWith('aa')) {
-      return {
-        ...defaultDetails,
-        price: 79,
-        frequency: "Daily",
-        duration: "3-6 months"
-      };
-    } else if (treatmentId.startsWith('hs')) {
-      return {
-        ...defaultDetails,
-        price: 89,
-        frequency: "Twice daily",
-        duration: "4-8 months"
-      };
-    }
-
-    return defaultDetails;
+const HealthMetricCard: React.FC<HealthMetricProps> = ({ icon: Icon, title, value, unit, status, lastUpdated }) => {
+  const statusColors = {
+    good: 'bg-green-50 border-green-200',
+    warning: 'bg-yellow-50 border-yellow-200',
+    alert: 'bg-red-50 border-red-200'
   };
 
-  const details = getTreatmentDetails(id);
-  
-  const handleClick = () => {
-    // Navigate to treatments page and potentially pre-select this treatment
-    navigate(`/treatments?treatment=${encodeURIComponent(id)}`);
+  const statusIconColors = {
+    good: 'text-green-600',
+    warning: 'text-yellow-600',
+    alert: 'text-red-600'
   };
 
   return (
-    <article 
-        className={`program-card-small ${themeClass} relative min-w-[220px] flex-shrink-0`} 
-        tabIndex={0} role="button" 
-        aria-label={`${name} - ${description} - $${details.price}/month`}
-        onClick={handleClick}
-    >
-      {tag && <div className={`absolute top-4 right-4 ${tag === 'New' ? 'tag-new' : 'tag-popular'}`}>{tag}</div>}
-      
-      <div className="icon-bg">
-        <TreatmentIcon className="w-5 h-5" />
-      </div>
-      
-      <div className="flex-1">
-        <h4 className="font-semibold text-gray-900 mb-1">{name}</h4>
-        <p className="text-sm text-gray-600 mb-3">{description}</p>
-        
-        {/* Enhanced details section */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500">Price</span>
-            <span className="text-sm font-semibold text-gray-900">${details.price}/mo</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500">Duration</span>
-            <span className="text-xs text-gray-700">{details.duration}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500">Frequency</span>
-            <span className="text-xs text-gray-700">{details.frequency}</span>
-          </div>
+    <div className={`rounded-xl border-2 ${statusColors[status]} p-4 transition-all hover:shadow-md`}>
+      <div className="flex items-start justify-between mb-3">
+        <div className={`w-10 h-10 rounded-lg ${statusColors[status]} flex items-center justify-center`}>
+          <Icon className={`w-5 h-5 ${statusIconColors[status]}`} />
         </div>
-        
-        {/* Availability indicator */}
-        <div className="mt-3 pt-3 border-t border-gray-100">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className={`w-2 h-2 rounded-full mr-2 ${details.isAvailable ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-              <span className="text-xs text-gray-600">
-                {details.isAvailable ? 'Available now' : 'Waitlist'}
-              </span>
-            </div>
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
+        <div className={`text-xs ${statusIconColors[status]} font-medium`}>
+          {status === 'good' ? '✓ Normal' : status === 'warning' ? '⚠ Monitor' : '⚠ Alert'}
         </div>
       </div>
-    </article>
+      <h3 className="text-sm font-medium text-gray-700 mb-1">{title}</h3>
+      <div className="flex items-baseline space-x-1">
+        <span className="text-2xl font-bold text-gray-900">{value}</span>
+        <span className="text-sm text-gray-600">{unit}</span>
+      </div>
+      <p className="text-xs text-gray-500 mt-2">Updated {lastUpdated}</p>
+    </div>
   );
 };
+
+// Upcoming Appointment Card Component
+interface AppointmentProps {
+  doctorName: string;
+  specialty: string;
+  date: string;
+  time: string;
+  type: string;
+}
+
+const AppointmentCard: React.FC<AppointmentProps> = ({ doctorName, specialty, date, time, type }) => {
+  return (
+    <div className="bg-white rounded-xl border-2 border-gray-100 p-4 hover:border-blue-200 transition-all">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center">
+          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+            <Calendar className="w-5 h-5 text-blue-600" />
+          </div>
+          <div>
+            <h4 className="font-semibold text-gray-900 text-sm">{doctorName}</h4>
+            <p className="text-xs text-gray-600">{specialty}</p>
+          </div>
+        </div>
+        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+          {type}
+        </span>
+      </div>
+      <div className="flex items-center space-x-4 text-sm text-gray-700">
+        <div className="flex items-center">
+          <Calendar className="w-4 h-4 mr-1 text-gray-500" />
+          <span>{date}</span>
+        </div>
+        <div className="flex items-center">
+          <Clock className="w-4 h-4 mr-1 text-gray-500" />
+          <span>{time}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
 
 const HealthPage: React.FC = () => {
@@ -172,10 +158,30 @@ const HealthPage: React.FC = () => {
     navigate('/messages');
   };
 
-  const handleViewAllCategory = (categoryTitle: string) => {
-    // Navigate to treatments page with category filter
-    navigate(`/treatments?category=${encodeURIComponent(categoryTitle)}`);
-  };
+  // Sample health data (in a real app, this would come from the backend)
+  const healthMetrics = [
+    { icon: Heart, title: 'Heart Rate', value: '72', unit: 'bpm', status: 'good' as const, lastUpdated: '2 hours ago' },
+    { icon: Activity, title: 'Blood Pressure', value: '120/80', unit: 'mmHg', status: 'good' as const, lastUpdated: '1 day ago' },
+    { icon: TrendingUp, title: 'Weight', value: '165', unit: 'lbs', status: 'good' as const, lastUpdated: '3 days ago' },
+    { icon: AlertCircle, title: 'Blood Glucose', value: '95', unit: 'mg/dL', status: 'good' as const, lastUpdated: '5 hours ago' }
+  ];
+
+  const upcomingAppointments = [
+    {
+      doctorName: 'Dr. Sarah Johnson',
+      specialty: 'Primary Care',
+      date: 'Oct 15, 2025',
+      time: '10:00 AM',
+      type: 'Follow-up'
+    },
+    {
+      doctorName: 'Dr. Michael Chen',
+      specialty: 'Specialist',
+      date: 'Oct 22, 2025',
+      time: '2:30 PM',
+      type: 'Consultation'
+    }
+  ];
 
   return (
     <div className="flex flex-col flex-grow">
@@ -209,29 +215,94 @@ const HealthPage: React.FC = () => {
             </button>
           </div>
         </section>
-        
-        <section aria-label="Explore available treatments">
-          <div className="mb-8">
-            <h2 className="section-title">Explore treatments</h2>
-            <p className="section-subtitle">Our most popular programs</p>
-            
-            {TREATMENT_CATEGORIES_DATA.map(category => (
-              <div key={category.id} className="mb-10">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="category-title">{category.title}</h3>
-                  <button 
-                    onClick={() => handleViewAllCategory(category.title)}
-                    className={`text-sm font-medium ${category.themeColorClass} hover:opacity-80 transition-colors`} 
-                    aria-label={category.viewAllLabel}
-                  >
-                    View All
-                  </button>
-                </div>
-                <div className="program-grid overflow-x-auto" data-category={category.id}>
-                  {category.treatments.map(treatment => <TreatmentCard key={treatment.id} {...treatment} />)}
-                </div>
-              </div>
+
+        {/* Health Metrics Section */}
+        <section className="mb-8" aria-label="Your health metrics">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">Health Metrics</h2>
+            <button
+              onClick={() => navigate('/profile')}
+              className="text-sm text-[var(--primary)] font-medium hover:opacity-80 transition-colors"
+            >
+              View All
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {healthMetrics.map((metric, index) => (
+              <HealthMetricCard key={index} {...metric} />
             ))}
+          </div>
+        </section>
+
+        {/* Upcoming Appointments Section */}
+        <section className="mb-8" aria-label="Upcoming appointments">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">Upcoming Appointments</h2>
+            <button
+              className="text-sm text-[var(--primary)] font-medium hover:opacity-80 transition-colors"
+            >
+              Schedule New
+            </button>
+          </div>
+          <div className="space-y-4">
+            {upcomingAppointments.map((appointment, index) => (
+              <AppointmentCard key={index} {...appointment} />
+            ))}
+          </div>
+        </section>
+
+        {/* Health Goals Section */}
+        <section className="mb-8" aria-label="Your health goals">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Health Goals</h2>
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border-2 border-purple-100 p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">Weight Management Program</h3>
+                <p className="text-sm text-gray-600">Target: Lose 15 lbs by December 2025</p>
+              </div>
+              <TrendingUp className="w-6 h-6 text-purple-600" />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">Progress</span>
+                <span className="font-semibold text-gray-900">8 lbs lost (53%)</span>
+              </div>
+              <div className="w-full bg-white rounded-full h-2">
+                <div className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full" style={{ width: '53%' }}></div>
+              </div>
+            </div>
+            <button className="w-full mt-4 bg-white text-purple-600 font-medium py-2 px-4 rounded-lg hover:bg-purple-50 transition-colors">
+              View Details
+            </button>
+          </div>
+        </section>
+
+        {/* Quick Actions Section */}
+        <section aria-label="Quick actions">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              onClick={() => navigate('/shop')}
+              className="bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-[var(--primary)] transition-all group"
+            >
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+              </div>
+              <p className="text-sm font-medium text-gray-900 text-center">Order Treatments</p>
+            </button>
+            <button
+              onClick={() => navigate('/messages')}
+              className="bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-[var(--primary)] transition-all group"
+            >
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </div>
+              <p className="text-sm font-medium text-gray-900 text-center">Ask a Doctor</p>
+            </button>
           </div>
         </section>
       </main>

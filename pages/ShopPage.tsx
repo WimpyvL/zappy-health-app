@@ -1,163 +1,184 @@
-
 import React, { useState } from 'react';
-import { ShoppingCart as ShoppingCartIconLucide } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ShoppingCart as ShoppingCartIconLucide, Search, ArrowRight } from 'lucide-react';
 import ShoppingCart from '../components/cart/ShoppingCart';
 import Header from '../components/layout/Header';
-import { ProductDataForShop, ShopCategoryMainCardData, ShopPageCategorySectionData, CartItem } from '../types';
-import { SHOP_PAGE_CATEGORY_SECTIONS_DATA, ICON_MAP, FEATURED_PRODUCTS_DATA } from '../constants';
-import { useCart } from '../contexts/CartContext'; // Import the actual useCart hook
+import { Treatment } from '../types';
+import { TREATMENT_CATEGORIES_DATA } from '../constants';
+import { useCart } from '../contexts/CartContext';
 
-// --- Sub-Components for ShopPage ---
-
-const RxTagComponent: React.FC = () => (
-  <div className="rx-tag">Rx</div>
-);
-
-interface ProductTeaserCardProps {
-  teaserData: ProductDataForShop;
-  themeClass: string;
-  onAddToCart: (product: ProductDataForShop) => void;
-}
-
-const ProductTeaserCard: React.FC<ProductTeaserCardProps> = ({ teaserData, themeClass, onAddToCart }) => {
-  const IconComponent = ICON_MAP[teaserData.iconName] || ICON_MAP['SparklesIcon']; 
-
+// TreatmentCard component - Enhanced for better UX
+const TreatmentCard: React.FC<Treatment & { onClick: () => void }> = ({ 
+  name, 
+  description, 
+  themeClass, 
+  icon: TreatmentIcon, 
+  tag, 
+  onClick 
+}) => {
   return (
-    <div 
-      className={`program-card-small product-teaser-card ${themeClass} w-64 sm:w-72 h-[360px] flex-shrink-0`} 
-      onClick={() => onAddToCart(teaserData)}
-      role="button"
+    <article
+      className={`${themeClass} relative rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-2 border-transparent hover:border-current`}
       tabIndex={0}
-      aria-label={`Add ${teaserData.name} to cart`}
-    >
-      {teaserData.requiresPrescription && <RxTagComponent />}
-      <div className={`icon-bg`}> 
-        <IconComponent className="w-5 h-5" /> 
-      </div>
-      <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-100 mt-2 mb-1 text-center">{teaserData.name}</h4>
-      <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center flex-grow">{teaserData.subtitle}</p>
-      <p className="mt-auto text-sm font-bold text-orange-500 dark:text-orange-400 pt-2">{teaserData.priceText}</p>
-    </div>
-  );
-};
-
-interface MainCategoryDisplayCardProps {
-  cardData: ShopCategoryMainCardData;
-   onClick?: () => void;
-}
-
-const MainCategoryDisplayCard: React.FC<MainCategoryDisplayCardProps> = ({ cardData, onClick }) => {
-  return (
-    <div
-      className="category-showcase-card w-64 sm:w-72 h-[360px] flex-shrink-0" 
-      style={{ backgroundImage: `url(${cardData.imageUrl})` }}
+      role="button"
+      aria-label={`View ${name} - ${description}`}
       onClick={onClick}
-      role="button"
-      tabIndex={0}
-      aria-label={`Explore ${cardData.title}`}
     >
-      <div className="overlay-content">
-        <h3 className="overlay-title">{cardData.title}</h3>
-        <p className="overlay-subtitle">{cardData.productCountText}</p>
+      {tag && (
+        <div className={`absolute top-4 right-4 ${tag === 'New' ? 'tag-new' : 'tag-popular'}`}>
+          {tag}
+        </div>
+      )}
+      
+      <div className="flex items-start space-x-4 mb-4">
+        <div className="icon-bg flex-shrink-0">
+          <TreatmentIcon className="w-6 h-6" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h4 className="font-bold text-gray-900 mb-2 text-lg">{name}</h4>
+          <p className="text-sm text-gray-600 line-clamp-2">{description}</p>
+        </div>
       </div>
-    </div>
+      
+      <div className="mt-6 pt-4 border-t border-gray-200">
+        <div className="flex items-center justify-between group">
+          <span className="text-sm font-medium text-gray-700">Learn more</span>
+          <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-gray-700 group-hover:translate-x-1 transition-all" />
+        </div>
+      </div>
+    </article>
   );
 };
 
-interface CategorySectionDisplayProps {
-  section: ShopPageCategorySectionData;
-  onAddToCart: (product: ProductDataForShop) => void;
-   onCategoryClick: (categoryTitle: string) => void;
+// Category Header Component
+interface CategoryHeaderProps {
+  title: string;
+  description: string;
+  themeColor: string;
+  onViewAll: () => void;
 }
 
-const CategorySectionDisplay: React.FC<CategorySectionDisplayProps> = ({ section, onAddToCart, onCategoryClick }) => {
+const CategoryHeader: React.FC<CategoryHeaderProps> = ({ title, description, themeColor, onViewAll }) => {
   return (
-    <section className="mb-10 md:mb-12" aria-labelledby={`${section.id}-title`}>
-      <h2 id={`${section.id}-title`} className="text-3xl font-semibold text-gray-800 dark:text-white mb-4">{section.sectionTitle}</h2>
-      <div className="flex overflow-x-auto space-x-4 md:space-x-6 py-4 scrollbar-hide"> 
-        <MainCategoryDisplayCard cardData={section.mainCard} onClick={() => onCategoryClick(section.sectionTitle)} />
-        {section.productTeasers.map((teaser) => (
-          <ProductTeaserCard 
-            key={teaser.id} 
-            teaserData={teaser} 
-            themeClass={section.themeClass} 
-            onAddToCart={onAddToCart}
-          />
-        ))}
+    <div className="flex items-center justify-between mb-6">
+      <div>
+        <h3 className="text-2xl font-bold text-gray-900 mb-1">{title}</h3>
+        <p className="text-sm text-gray-600">{description}</p>
       </div>
-    </section>
+      <button
+        onClick={onViewAll}
+        className={`${themeColor} px-4 py-2 rounded-lg font-medium text-sm hover:opacity-90 transition-all flex items-center space-x-2`}
+      >
+        <span>View All</span>
+        <ArrowRight className="w-4 h-4" />
+      </button>
+    </div>
   );
 };
 
 // --- ShopPage Component ---
 const ShopPage: React.FC = () => {
-  const { addItemToCart, getCartItemCount } = useCart();
+  const navigate = useNavigate();
+  const { getCartItemCount } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const currentCartItemCount = getCartItemCount();
 
-  const handleProductTeaserAddToCart = (product: ProductDataForShop) => {
-    const cartItem: CartItem = {
-      doseId: product.doseId,
-      productName: product.productName,
-      price: product.price,
-      quantity: 1, // When adding from the shop page, quantity is always 1 initially
-      requiresPrescription: product.requiresPrescription,
-      imageUrl: product.imageUrl,
-    };
-    addItemToCart(cartItem);
-    console.log(`${product.name} added to cart via ShopPage handler.`);
+  const handleTreatmentClick = (treatmentId: string) => {
+    navigate(`/treatments?treatment=${encodeURIComponent(treatmentId)}`);
   };
 
-  const handleCategoryCardClick = (categoryTitle: string) => {
-    console.log(`Category ${categoryTitle} main card clicked.`);
+  const handleViewAllCategory = (categoryTitle: string) => {
+    navigate(`/treatments?category=${encodeURIComponent(categoryTitle)}`);
+  };
+
+  // Get category descriptions
+  const getCategoryDescription = (categoryTitle: string): string => {
+    const descriptions: Record<string, string> = {
+      'Weight Loss': 'Medically supervised programs designed to help you reach your goals',
+      'Anti-Aging': 'Advanced treatments to help you look and feel your best',
+      'Hair & Skin': 'Clinically proven solutions for healthy hair and radiant skin',
+      "Women's Health": 'Comprehensive care tailored for women at every stage',
+      'Sexual Health': 'Confidential treatments to improve intimacy and wellness'
+    };
+    return descriptions[categoryTitle] || 'Browse our selection of treatments';
   };
 
   return (
-    <div className="flex flex-col flex-grow">
-      <Header title="Shop" subtitle="Find the right treatment for you" />
+    <div className="flex flex-col flex-grow bg-gradient-to-b from-gray-50 to-white">
+      <Header title="Treatment Programs" subtitle="Expert care, personalized for you" />
       
-      <main className="px-4 sm:px-6 pt-5 pb-36 flex-grow" role="main">
-        <div className="flex justify-end items-center mb-6">
+      <main className="px-4 sm:px-6 lg:px-8 pt-6 pb-36 flex-grow max-w-7xl mx-auto w-full" role="main">
+        {/* Search and Filter Bar */}
+        <div className="mb-8 sticky top-0 bg-white/80 backdrop-blur-lg z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-4 shadow-sm">
+          <div className="flex items-center space-x-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search treatments..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[var(--primary)] focus:outline-none transition-colors"
+              />
+            </div>
             <button
-            onClick={() => setIsCartOpen(true)}
-            className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2"
-            aria-label={`Open shopping cart, ${currentCartItemCount} items`}
-          >
-            <ShoppingCartIconLucide className="h-6 w-6 text-gray-700 dark:text-gray-300" />
-            {currentCartItemCount > 0 && (
-              <span className="absolute -top-1 -right-1 block h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center ring-2 ring-white dark:ring-slate-800">
-                {currentCartItemCount}
-              </span>
-            )}
-          </button>
+              onClick={() => setIsCartOpen(true)}
+              className="relative p-3 rounded-xl bg-[var(--primary)] text-white hover:bg-[var(--secondary)] transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2"
+              aria-label={`Open shopping cart, ${currentCartItemCount} items`}
+            >
+              <ShoppingCartIconLucide className="h-6 w-6" />
+              {currentCartItemCount > 0 && (
+                <span className="absolute -top-2 -right-2 block h-6 w-6 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center ring-2 ring-white">
+                  {currentCartItemCount}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
 
-        <div className="space-y-10">
-          {/* New "Top Picks" Section */}
-          <section className="mb-10 md:mb-12" aria-labelledby="top-picks-title">
-            <h2 id="top-picks-title" className="text-3xl font-semibold text-gray-800 dark:text-white mb-4">Top Picks</h2>
-            <div className="flex overflow-x-auto space-x-4 md:space-x-6 py-4 scrollbar-hide">
-              {FEATURED_PRODUCTS_DATA.map((product) => (
-                <ProductTeaserCard
-                  key={product.id}
-                  teaserData={product}
-                  themeClass="theme-peptides" // Green theme for "Top Picks"
-                  onAddToCart={handleProductTeaserAddToCart}
-                />
-              ))}
-            </div>
-          </section>
-          
-          {SHOP_PAGE_CATEGORY_SECTIONS_DATA.map((section) => (
-            <CategorySectionDisplay 
-              key={section.id} 
-              section={section} 
-              onAddToCart={handleProductTeaserAddToCart}
-              onCategoryClick={handleCategoryCardClick}
-            />
+        {/* Treatment Categories */}
+        <div className="space-y-12">
+          {TREATMENT_CATEGORIES_DATA.map(category => (
+            <section key={category.id} className="scroll-mt-24">
+              <CategoryHeader
+                title={category.title}
+                description={getCategoryDescription(category.title)}
+                themeColor={category.themeColorClass}
+                onViewAll={() => handleViewAllCategory(category.title)}
+              />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {category.treatments.map(treatment => (
+                  <TreatmentCard
+                    key={treatment.id}
+                    {...treatment}
+                    onClick={() => handleTreatmentClick(treatment.id)}
+                  />
+                ))}
+              </div>
+            </section>
           ))}
         </div>
+
+        {/* Help Section */}
+        <section className="mt-16 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 border-2 border-blue-100">
+          <div className="text-center max-w-2xl mx-auto">
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">Need help choosing?</h3>
+            <p className="text-gray-600 mb-6">
+              Our healthcare providers are here to guide you through finding the right treatment for your needs.
+            </p>
+            <button
+              onClick={() => navigate('/messages')}
+              className="bg-[var(--primary)] text-white px-8 py-3 rounded-xl font-semibold hover:bg-[var(--secondary)] transition-all duration-300 hover:scale-105 inline-flex items-center space-x-2"
+            >
+              <span>Talk to a Provider</span>
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
+        </section>
       </main>
+      
       <ShoppingCart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </div>
   );

@@ -14,10 +14,10 @@ export const useProfile = () => {
     isProfileLoading: profileLoading,
     
     // Computed values for easy access
-    displayName: profile?.full_name || user?.user_metadata?.full_name || null,
+    displayName: profile?.full_name || (user?.user_metadata as any)?.full_name || null,
     email: profile?.email || user?.email || null,
     avatarUrl: profile?.avatar_url || null,
-    memberSince: profile?.created_at ? new Date(profile.created_at) : null,
+    memberSince: profile?.created_at && typeof profile.created_at === 'string' ? new Date(profile.created_at) : null,
     
     // Actions
     updateProfile,
