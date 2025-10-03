@@ -344,51 +344,55 @@ const SharePage: React.FC = () => {
           </div>
         </section>
 
-        {/* Share Link Section */}
-        <section className="mb-8">
-          <div className="flex items-center mb-4">
-            <ChevronRightIcon className="w-6 h-6 text-blue-600 mr-2" />
-            <h2 className="text-xl font-bold text-gray-900">Share Link</h2>
+        {/* Quick Share Link */}
+        <section className="mb-6">
+          <div className="flex items-center mb-3">
+            <ChevronRightIcon className="w-5 h-5 text-blue-600 mr-2" />
+            <h2 className="text-lg font-bold text-gray-900">Quick Share Link</h2>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3.5">
             <div className="flex items-center justify-between">
-              <div className="flex-1 mr-4">
-                <div className="text-sm text-gray-500 mb-1">Your unique share link</div>
-                <div className="text-sm text-gray-900 font-mono truncate">{shareUrl}</div>
+              <div className="flex-1 mr-3">
+                <div className="text-xs text-gray-500 mb-1">Your referral link</div>
+                <div className="text-xs text-gray-900 font-mono truncate">{shareUrl}</div>
               </div>
               <button
                 onClick={handleCopyLink}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex-shrink-0"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex-shrink-0 text-sm"
               >
-                Copy Link
+                Copy
               </button>
             </div>
           </div>
         </section>
 
-        {/* Tips Section */}
-        <section className="mb-8">
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-100">
+        {/* Sharing Tips */}
+        <section className="mb-6">
+          <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 rounded-xl p-5 border border-blue-100">
             <div className="flex items-start">
-              <UserCircleIcon className="w-6 h-6 text-blue-600 mr-3 mt-1 flex-shrink-0" />
+              <UserCircleIcon className="w-5 h-5 text-blue-600 mr-2.5 mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-bold text-gray-900 mb-2">Sharing Tips</h3>
-                <ul className="space-y-2 text-sm text-gray-700">
+                <h3 className="font-bold text-gray-900 mb-2 text-sm">Pro Sharing Tips</h3>
+                <ul className="space-y-1.5 text-xs text-gray-700">
                   <li className="flex items-start">
-                    <span className="text-green-500 mr-2">✓</span>
-                    <span>Be authentic - share your real journey and experiences</span>
+                    <span className="text-green-500 mr-2 mt-0.5">✓</span>
+                    <span>Share authentic experiences - real stories inspire others</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-green-500 mr-2">✓</span>
-                    <span>Use hashtags to reach a wider audience</span>
+                    <span className="text-green-500 mr-2 mt-0.5">✓</span>
+                    <span>Include specific numbers and milestones for impact</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-green-500 mr-2">✓</span>
-                    <span>Include specific milestones and achievements</span>
+                    <span className="text-green-500 mr-2 mt-0.5">✓</span>
+                    <span>Use photos to show your transformation visually</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-green-500 mr-2">✓</span>
-                    <span>Encourage others who are on their own journey</span>
+                    <span className="text-green-500 mr-2 mt-0.5">✓</span>
+                    <span>Add hashtags to reach people on similar journeys</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-green-500 mr-2 mt-0.5">✓</span>
+                    <span>Tag your program to connect with the community</span>
                   </li>
                 </ul>
               </div>
@@ -396,9 +400,36 @@ const SharePage: React.FC = () => {
           </div>
         </section>
 
+        {/* Stats and Motivation */}
+        {shareStats.totalShares > 0 && (
+          <section className="mb-6">
+            <div className="bg-gradient-to-r from-green-50 to-teal-50 rounded-xl p-5 border border-green-100">
+              <h3 className="font-bold text-gray-900 mb-2 text-sm flex items-center">
+                <TrophyIcon className="w-5 h-5 text-green-600 mr-2" />
+                Your Impact
+              </h3>
+              <p className="text-sm text-gray-700 mb-3">
+                You've shared your journey <strong>{shareStats.totalShares} times</strong>! Every share could inspire someone to start their own transformation. Keep spreading positivity! 🌟
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-white/60 rounded-lg p-2 text-center">
+                  <div className="text-xs text-gray-600">Potential Reach</div>
+                  <div className="text-lg font-bold text-green-600">{shareStats.totalShares * 150}+</div>
+                </div>
+                <div className="bg-white/60 rounded-lg p-2 text-center">
+                  <div className="text-xs text-gray-600">Lives Touched</div>
+                  <div className="text-lg font-bold text-green-600">∞</div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Privacy Notice */}
-        <section className="text-center text-sm text-gray-500 px-4">
-          <p>Your privacy is important. Share only what you're comfortable with. All sharing is done through external platforms.</p>
+        <section className="text-center text-xs text-gray-500 px-4 pb-2">
+          <p className="leading-relaxed">
+            🔒 Your privacy matters. Share only what you're comfortable with. All sharing happens through external platforms with your control.
+          </p>
         </section>
       </main>
     </div>
