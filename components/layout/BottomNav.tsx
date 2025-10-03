@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { NavItemType, Page } from '../../types';
+import { Page } from '../../types';
 import { NAVIGATION_ITEMS, PlusIcon } from '../../constants';
 
 interface BottomNavProps {
