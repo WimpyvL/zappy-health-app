@@ -1,5 +1,5 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useContext, useEffect, useMemo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../components/layout/Header';
 import { 
   TreatmentList, 
@@ -16,7 +16,8 @@ const TreatmentsPage: React.FC = () => {
   const { profile, isLoggedIn } = useProfile();
   const toastContext = useContext(ToastContext);
   const location = useLocation();
-  
+  const navigate = useNavigate();
+
   // Parse URL parameters
   const searchParams = new URLSearchParams(location.search);
   const categoryFromUrl = searchParams.get('category');
@@ -28,13 +29,15 @@ const TreatmentsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<'name' | 'category' | 'popular'>('popular');
 
-  // Flatten all treatments with category information
-  const allTreatments: TreatmentWithCategory[] = TREATMENT_CATEGORIES_DATA.flatMap(category =>
-    category.treatments.map(treatment => ({
-      ...treatment,
-      category: category.title,
-      categoryColor: category.themeColorClass
-    }))
+  // Flatten all treatments with category information (memoized to prevent infinite loops)
+  const allTreatments: TreatmentWithCategory[] = useMemo(() => 
+    TREATMENT_CATEGORIES_DATA.flatMap(category =>
+      category.treatments.map(treatment => ({
+        ...treatment,
+        category: category.title,
+        categoryColor: category.themeColorClass
+      }))
+    ), []
   );
 
   // Update category and treatment when URL changes
@@ -80,6 +83,7 @@ const TreatmentsPage: React.FC = () => {
 
   const handleBackToList = () => {
     setSelectedTreatment(null);
+    navigate('/treatments');
   };
 
   const handleStartTreatment = (treatment: TreatmentWithCategory) => {

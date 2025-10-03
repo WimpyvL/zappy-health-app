@@ -124,14 +124,14 @@ export const TreatmentDetail: React.FC<TreatmentDetailProps> = ({
         Back to treatments
       </button>
 
-      <div className={`treatment-detail-header ${themeClass} rounded-2xl p-6 mb-6`}>
-        <div className="flex items-start justify-between">
-          <div className="flex items-start space-x-4">
-            <div className="icon-bg">
+      <div className={`treatment-detail-header ${themeClass} rounded-2xl p-6 mb-6 bg-white shadow-sm`}>
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+          <div className="flex items-start space-x-4 flex-1">
+            <div className="icon-bg flex-shrink-0">
               <TreatmentIcon className="w-6 h-6" />
             </div>
-            <div>
-              <div className="flex items-center space-x-3 mb-2">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center flex-wrap gap-2 mb-2">
                 <h1 className="text-2xl font-bold text-gray-900">{name}</h1>
                 {tag && (
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${tag === 'New' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
@@ -145,7 +145,7 @@ export const TreatmentDetail: React.FC<TreatmentDetailProps> = ({
               </span>
             </div>
           </div>
-          <div className="text-right">
+          <div className="text-left md:text-right flex-shrink-0">
             <div className="text-3xl font-bold text-gray-900 mb-1">
               ${details.price}
               <span className="text-sm font-normal text-gray-600">/month</span>

@@ -14,6 +14,9 @@ import SupportPage from './pages/SupportPage';
 import ReferralPage from './pages/ReferralPage';
 import SharePage from './pages/SharePage';
 import AssistantPage from './pages/AssistantPage';
+import PlansPage from './pages/PlansPage';
+import InstructionsPage from './pages/InstructionsPage';
+import SchedulePage from './pages/SchedulePage';
 import BottomNav from './components/layout/BottomNav';
 import QuickActionsMenu from './components/layout/QuickActionsMenu';
 import ToastContainer from './components/ui/ToastContainer';
@@ -58,38 +61,46 @@ const App: React.FC = () => {
   // Determine current page for BottomNav active state
   let currentPage: Page;
   let showBottomNav = true; // Controls whether to show bottom navigation
-  
-  switch (location.pathname) {
-    case '/health':
-      currentPage = Page.Health;
-      break;
-    case '/learn':
-      currentPage = Page.Learn;
-      break;
-    case '/shop':
-      currentPage = Page.Shop;
-      break;
-    case '/treatments':
-      currentPage = Page.Health; // Treat treatments as part of health
-      break;
-    case '/messages':
-      currentPage = Page.Health; // Treat messages as part of health
-      break;
-    case '/login':
-    case '/signup':
-    case '/profile':
-    case '/auth/callback':
-    case '/support':
-    case '/referral':
-    case '/share':
-    case '/assistant':
-      currentPage = Page.Home; // Default for auth pages
-      showBottomNav = false; // Hide bottom nav on these pages
-      break;
-    case '/':
-    default:
-      currentPage = Page.Home;
-      break;
+
+  // Pages where bottom nav should be hidden
+  const hideBottomNavPages = [
+    '/login',
+    '/signup',
+    '/profile',
+    '/auth/callback',
+    '/assistant'
+  ];
+
+  if (hideBottomNavPages.includes(location.pathname)) {
+    currentPage = Page.Home;
+    showBottomNav = false;
+  } else {
+    switch (location.pathname) {
+      case '/health':
+        currentPage = Page.Health;
+        break;
+      case '/learn':
+        currentPage = Page.Learn;
+        break;
+      case '/shop':
+        currentPage = Page.Shop;
+        break;
+      case '/treatments':
+        currentPage = Page.Health; // Treat treatments as part of health
+        break;
+      case '/messages':
+        currentPage = Page.Health; // Treat messages as part of health
+        break;
+      case '/support':
+      case '/referral':
+      case '/share':
+        currentPage = Page.Home; // Show home as active for these pages
+        break;
+      case '/':
+      default:
+        currentPage = Page.Home;
+        break;
+    }
   }
   
   // Apply theme class to the root of the content area based on active program
@@ -110,6 +121,9 @@ const App: React.FC = () => {
               <Route path="/messages" element={<MessagesPage />} />
               <Route path="/learn" element={<LearnPage />} />
               <Route path="/shop" element={<ShopPage />} />
+              <Route path="/plans" element={<PlansPage />} />
+              <Route path="/instructions/:type" element={<InstructionsPage />} />
+              <Route path="/schedule" element={<SchedulePage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/profile" element={<ProfilePage />} />

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Activity, Heart, Calendar, TrendingUp, Clock, AlertCircle } from 'lucide-react';
 import Header from '../components/layout/Header';
@@ -7,6 +7,7 @@ import { RECENT_MESSAGES_DATA, PencilIcon, ChevronRightIcon } from '../constants
 import { Message } from '../types';
 import { useMessaging } from '../hooks/useMessaging';
 import { MessagingService } from '../services/messaging';
+import { ProgramContext } from '../App';
 
 const MessageCard: React.FC<Message> = ({ id, doctorName, specialty, timeAgo, dateTime, content, isUnread, themeColor, avatarIcon: AvatarIcon }) => {
   const navigate = useNavigate();
@@ -129,6 +130,7 @@ const AppointmentCard: React.FC<AppointmentProps> = ({ doctorName, specialty, da
 const HealthPage: React.FC = () => {
   const navigate = useNavigate();
   const { conversations } = useMessaging();
+  const programContext = useContext(ProgramContext);
 
   // Convert database conversations to display format
   const recentMessages: Message[] = conversations.slice(0, 2).map(conv => ({
@@ -239,6 +241,7 @@ const HealthPage: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Upcoming Appointments</h2>
             <button
+              onClick={() => navigate('/schedule')}
               className="text-sm text-[var(--primary)] font-medium hover:opacity-80 transition-colors"
             >
               Schedule New
@@ -271,7 +274,13 @@ const HealthPage: React.FC = () => {
                 <div className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full" style={{ width: '53%' }}></div>
               </div>
             </div>
-            <button className="w-full mt-4 bg-white text-purple-600 font-medium py-2 px-4 rounded-lg hover:bg-purple-50 transition-colors">
+            <button
+              onClick={() => {
+                programContext?.setActiveProgramById('weight');
+                navigate('/');
+              }}
+              className="w-full mt-4 bg-white text-purple-600 font-medium py-2 px-4 rounded-lg hover:bg-purple-50 transition-colors"
+            >
               View Details
             </button>
           </div>

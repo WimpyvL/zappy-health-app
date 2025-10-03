@@ -308,6 +308,72 @@
       animation: shimmer 3s infinite;
     }
 
+    /* Enhanced notification menu styles */
+    .notification-menu-backdrop {
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    /* Enhanced notification item styling */
+    .bg-blue-25 {
+      background-color: rgba(59, 130, 246, 0.03);
+    }
+
+    .bg-green-25 {
+      background-color: rgba(16, 185, 129, 0.03);
+    }
+
+    /* Improved text rendering and spacing */
+    .notification-text {
+      line-height: 1.5;
+      letter-spacing: -0.01em;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Better typography hierarchy */
+    .notification-title {
+      font-weight: 600;
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+      color: #111827;
+      margin-bottom: 0.25rem;
+    }
+
+    .notification-content {
+      font-size: 0.875rem;
+      line-height: 1.375rem;
+      color: #4b5563;
+      margin-bottom: 0.75rem;
+    }
+
+    .notification-timestamp {
+      font-size: 0.75rem;
+      line-height: 1rem;
+      color: #9ca3af;
+      font-weight: 400;
+    }
+
+    /* Enhanced notification badge */
+    .notification-badge {
+      font-size: 0.75rem;
+      line-height: 1rem;
+      font-weight: 500;
+      padding: 0.25rem 0.5rem;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    /* Better focus states */
+    .notification-item:focus-within {
+      outline: 2px solid #3b82f6;
+      outline-offset: -2px;
+      border-radius: 0.5rem;
+    }
+
     /* Enhanced program tabs */
     .program-tabs { 
       display: flex; 

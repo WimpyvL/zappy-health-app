@@ -1,5 +1,6 @@
 
 import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/layout/Header';
 import ProgramTabs from '../components/ui/ProgramTabs';
 import NotificationBanner from '../components/ui/NotificationBanner';
@@ -11,6 +12,7 @@ import { useHomePageData } from '../hooks/useHomePageData';
 
 const HomePage: React.FC = () => {
   // ALL HOOKS MUST BE CALLED FIRST - BEFORE ANY CONDITIONAL LOGIC
+  const navigate = useNavigate();
   const programContext = useContext(ProgramContext);
   const toastContext = useContext(ToastContext);
   const { data: homeData, loading, error, logWeight, completeTask } = useHomePageData();
@@ -88,7 +90,7 @@ const HomePage: React.FC = () => {
   };
   
   const handleViewInstructions = (type: string) => {
-     toastContext?.addToast(`Viewing instructions for ${type.replace('-', ' ')}...`, 'info');
+    navigate(`/instructions/${type}`);
   }
 
   // Content for the active program. This is simplified.
@@ -507,7 +509,11 @@ const HomePage: React.FC = () => {
       <section aria-label="Learning resources and educational content">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold text-gray-900">Learning & Resources</h3>
-          <button className="text-sm text-[var(--primary)] font-medium hover:text-[var(--secondary)] transition-colors" aria-label="View all resources">
+          <button
+            onClick={() => navigate('/learn')}
+            className="text-sm text-[var(--primary)] font-medium hover:text-[var(--secondary)] transition-colors"
+            aria-label="View all resources"
+          >
             View All
           </button>
         </div>
@@ -640,7 +646,11 @@ const HomePage: React.FC = () => {
         <section className="mt-8" aria-label="Treatment programs">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900">My Plans</h2>
-            <button className="text-sm text-[var(--primary)] font-medium hover:text-[var(--secondary)] transition-colors" aria-label="View all programs">
+            <button
+              onClick={() => navigate('/plans')}
+              className="text-sm text-[var(--primary)] font-medium hover:text-[var(--secondary)] transition-colors"
+              aria-label="View all programs"
+            >
               View All
             </button>
           </div>
