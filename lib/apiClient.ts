@@ -1,8 +1,13 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+const API_KEY = import.meta.env.VITE_API_KEY
 const STATIC_TOKEN = import.meta.env.VITE_API_AUTH_TOKEN
 
 if (!API_BASE_URL) {
   throw new Error('Missing VITE_API_BASE_URL environment variable. Please check your .env configuration.')
+}
+
+if (!API_KEY) {
+  throw new Error('Missing VITE_API_KEY environment variable. Please check your .env configuration.')
 }
 
 type Query = Record<string, string | number | boolean | undefined | null>
@@ -48,6 +53,15 @@ export class ApiClient {
       resolvedHeaders = [...headers]
     } else {
       resolvedHeaders = { ...(headers || {}) }
+    }
+
+    // Always add X-API-KEY header
+    if (resolvedHeaders instanceof Headers) {
+      resolvedHeaders.set('X-API-KEY', API_KEY)
+    } else if (Array.isArray(resolvedHeaders)) {
+      resolvedHeaders.push(['X-API-KEY', API_KEY])
+    } else {
+      resolvedHeaders['X-API-KEY'] = API_KEY
     }
 
     const shouldSetJsonHeader = !(isFormData(body) || isBlob(body) || isArrayBuffer(body) || typeof body === 'string')

@@ -1,8 +1,8 @@
 
-import React, { useRef, useEffect, useContext } from 'react';
+import React, { useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { QUICK_ACTIONS } from '../../constants';
-import { ToastContext } from '../../App';
-import { QuickAction, ToastContextType } from '../../types';
+import { QuickAction } from '../../types';
 
 
 interface QuickActionsMenuProps {
@@ -12,7 +12,7 @@ interface QuickActionsMenuProps {
 
 const QuickActionsMenu: React.FC<QuickActionsMenuProps> = ({ isOpen, onClose }) => {
   const menuRef = useRef<HTMLDivElement>(null);
-  const toastContext = useContext<ToastContextType | undefined>(ToastContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent): void => {
@@ -35,12 +35,25 @@ const QuickActionsMenu: React.FC<QuickActionsMenuProps> = ({ isOpen, onClose }) 
   }, [isOpen]);
   
   const handleActionClick = (action: QuickAction) => {
-    if (toastContext) {
-      toastContext.addToast(`Opening ${action.label.toLowerCase()}...`, 'info');
-    }
-    // Here you would typically dispatch an action or navigate
-    console.log(`Quick action: ${action.label} clicked`);
     onClose();
+    
+    // Navigate based on action id
+    switch (action.id) {
+      case 'support':
+        navigate('/support');
+        break;
+      case 'refer':
+        navigate('/referral');
+        break;
+      case 'share':
+        navigate('/share');
+        break;
+      case 'assistant':
+        navigate('/assistant');
+        break;
+      default:
+        console.log(`Quick action: ${action.label} clicked`);
+    }
   };
 
 

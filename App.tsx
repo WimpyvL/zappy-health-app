@@ -10,6 +10,10 @@ import AuthCallbackPage from './pages/AuthCallbackPage';
 import { ProfilePage } from './pages/ProfilePage';
 import TreatmentsPage from './pages/TreatmentsPage';
 import MessagesPage from './pages/MessagesPage';
+import SupportPage from './pages/SupportPage';
+import ReferralPage from './pages/ReferralPage';
+import SharePage from './pages/SharePage';
+import AssistantPage from './pages/AssistantPage';
 import BottomNav from './components/layout/BottomNav';
 import QuickActionsMenu from './components/layout/QuickActionsMenu';
 import ToastContainer from './components/ui/ToastContainer';
@@ -17,8 +21,6 @@ import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import { Page, ProgramContextType, ToastContextType, ToastMessage } from './types';
 import { PROGRAMS_DATA, DEFAULT_PROGRAM_ID } from './constants';
-// Development tools - only import in dev mode
-import MessagingTestUtils from './components/dev/MessagingTestUtils';
 
 export const ProgramContext = createContext<ProgramContextType | undefined>(undefined);
 export const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -77,8 +79,12 @@ const App: React.FC = () => {
     case '/signup':
     case '/profile':
     case '/auth/callback':
+    case '/support':
+    case '/referral':
+    case '/share':
+    case '/assistant':
       currentPage = Page.Home; // Default for auth pages
-      showBottomNav = false; // Hide bottom nav on auth pages
+      showBottomNav = false; // Hide bottom nav on these pages
       break;
     case '/':
     default:
@@ -108,6 +114,10 @@ const App: React.FC = () => {
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/auth/callback" element={<AuthCallbackPage />} />
+              <Route path="/support" element={<SupportPage />} />
+              <Route path="/referral" element={<ReferralPage />} />
+              <Route path="/share" element={<SharePage />} />
+              <Route path="/assistant" element={<AssistantPage />} />
             </Routes>
             
             <QuickActionsMenu
@@ -123,8 +133,6 @@ const App: React.FC = () => {
             )}
           </div>
           <ToastContainer toasts={toasts} removeToast={removeToast} />
-          {/* Development tools - only show in development mode */}
-          {import.meta.env.DEV && <MessagingTestUtils />}
         </ToastContext.Provider>
       </ProgramContext.Provider>
     </CartProvider>
